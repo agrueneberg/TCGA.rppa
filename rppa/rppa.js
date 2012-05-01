@@ -1,6 +1,8 @@
 (function () {
     "use strict";
 
+    console.log("Loading dependencies...");
+
  // Load dependencies.
     TCGA.loadScript(["https://raw.github.com/caolan/async/master/dist/async.min.js",
                      "https://raw.github.com/agrueneberg/Ganesha/master/ganesha.js",
@@ -10,6 +12,8 @@
                      "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js"], function () {
 
         var query;
+
+        console.log("Querying hub...");
 
         query = ["prefix tcga:<http://tcga.github.com/#>",
                  "select distinct ?name ?url",
