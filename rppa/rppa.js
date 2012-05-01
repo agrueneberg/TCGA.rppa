@@ -4,7 +4,7 @@
  // Load dependencies.
     TCGA.loadScript(["https://raw.github.com/caolan/async/master/dist/async.min.js",
                      "https://raw.github.com/agrueneberg/Ganesha/master/ganesha.js",
-                     "https://raw.github.com/agrueneberg/Stats/master/stats.js",
+                     "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
                      "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
                      "https://raw.github.com/agrueneberg/Viz/master/barchart/barchart.js",
                      "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js"], function () {
@@ -83,7 +83,7 @@
                   * Calculate the standard deviation of the expression levels for each protein. */
                     sd = {};
                     Object.keys(proteins).map(function (protein) {
-                        sd[protein] = stats.standardDeviation(proteins[protein]);
+                        sd[protein] = spearson.standardDeviation(proteins[protein]);
                     });
 
                  // Make data available to other modules.
@@ -103,7 +103,7 @@
                             if (cor[protein1] === undefined) {
                                 cor[protein1] = {};
                             }
-                            cor[protein1][protein2] = stats.correlation(proteins[protein1], proteins[protein2]);
+                            cor[protein1][protein2] = spearson.correlation.pearson(proteins[protein1], proteins[protein2]);
                         });
                     });
 
