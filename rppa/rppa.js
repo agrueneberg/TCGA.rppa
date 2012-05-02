@@ -78,7 +78,21 @@
                     var labels, data, graph, sd, cor;
 
                  // Register tab.
-                    TCGA.registerTab("rppa", "RPPA", "<h1>RPPA</h1><div id=\"rppa-barchart\"></div><div id=\"rppa-heatmap\"></div>");
+                    TCGA.registerTab("rppa", "RPPA", "<h1>RPPA</h1><button id=\"rppa-probes-collapser\" class=\"btn\" data-toggle=\"collapse\" data-target=\"#rppa-probes\">List of Probes <i class=\"icon-chevron-down\"></i></button><div id=\"rppa-probes\" class=\"collapse\"><ul></ul></div><div id=\"rppa-barchart\"></div><div id=\"rppa-heatmap\"></div>");
+
+                 // Collapse list of probes.
+                    $("#rppa-probes").on("shown", function (ev) {
+                                         $("#rppa-probes-collapser i").removeClass("icon-chevron-down");
+                                         $("#rppa-probes-collapser i").addClass("icon-chevron-up");
+                                      })
+                                     .on("hidden", function (ev) {
+                                         $("#rppa-probes-collapser i").removeClass("icon-chevron-up");
+                                         $("#rppa-probes-collapser i").addClass("icon-chevron-down");
+                                      });
+
+                    Object.keys(files).forEach(function (file) {
+                        $("#rppa-probes ul").append("<li><a href=" + file + ">" + file.substring(178, file.length) + "</a></li>");
+                    });
 
                  // Make raw data available to other modules.
                     TCGA.data["rppa"] = proteins;
