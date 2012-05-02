@@ -13,6 +13,14 @@
 
         var query;
 
+     // Register tab.
+        TCGA.registerTab({
+            id: "rppa",
+            title: "RPPA",
+            content: "<div class=\"page-header\"><h1>RPPA</h1></div><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-barchart\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-barchart\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-heatmap\">Pearson correlation coefficients of protein pairs</a></div><div id=\"rppa-heatmap\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div></div>",
+            switchTab: true
+        });
+
         console.log("Querying hub...");
 
         query = ["prefix tcga:<http://tcga.github.com/#>",
@@ -35,7 +43,7 @@
 
             var files, queue;
 
-         // List of files.
+         // Create empty list of files.
             files = {};
 
          // Get file names.
@@ -77,23 +85,6 @@
 
                     var labels, data, graph, sd, cor;
 
-                 // Register tab.
-                    TCGA.registerTab("rppa", "RPPA", "<h1>RPPA</h1><button id=\"rppa-probes-collapser\" class=\"btn\" data-toggle=\"collapse\" data-target=\"#rppa-probes\">List of Probes <i class=\"icon-chevron-down\"></i></button><div id=\"rppa-probes\" class=\"collapse\"><ul></ul></div><div id=\"rppa-barchart\"></div><div id=\"rppa-heatmap\"></div>");
-
-                 // Collapse list of probes.
-                    $("#rppa-probes").on("shown", function (ev) {
-                                         $("#rppa-probes-collapser i").removeClass("icon-chevron-down");
-                                         $("#rppa-probes-collapser i").addClass("icon-chevron-up");
-                                      })
-                                     .on("hidden", function (ev) {
-                                         $("#rppa-probes-collapser i").removeClass("icon-chevron-up");
-                                         $("#rppa-probes-collapser i").addClass("icon-chevron-down");
-                                      });
-
-                    Object.keys(files).forEach(function (file) {
-                        $("#rppa-probes ul").append("<li><a href=" + file + ">" + file.substring(178, file.length) + "</a></li>");
-                    });
-
                  // Make raw data available to other modules.
                     TCGA.data["rppa"] = proteins;
 
@@ -109,8 +100,8 @@
 
                  // Draw bar chart.
                     barchart(sd, {
-                        parentElement: document.getElementById("rppa-barchart"),
-                        width: 940
+                        parentElement: document.querySelector("#rppa-barchart div"),
+                        width: 908
                     });
 
                  /***
@@ -130,9 +121,9 @@
 
                  // Draw heatmap.
                     heatmap(cor, {
-                        parentElement: document.getElementById("rppa-heatmap"),
-                        width: 940,
-                        height: 940
+                        parentElement: document.querySelector("#rppa-heatmap div"),
+                        width: 908,
+                        height: 908
                     });
 
                 });
@@ -142,9 +133,12 @@
 
             };
 
+         // Add files to queue.
             Object.keys(files).map(function (file) {
                 queue.push(file, function () {
                     console.log("Downloaded", file);
+                 // Add file to list of samples.
+                    $("#rppa-samples ul").append("<li><a href=" + file + ">" + file.substring(178, file.length) + "</a></li>");
                 });
             });
 
