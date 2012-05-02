@@ -83,47 +83,65 @@
              // Create a MapReduce job that groups all values together.
                 job = ganesha.createJob(files, map, function (proteins) {
 
-                    var labels, data, graph, sd, cor;
-
                  // Make raw data available to other modules.
                     TCGA.data["rppa"] = proteins;
 
-                 /***
-                  * Calculate the standard deviation of the expression levels for each protein. */
-                    sd = {};
-                    Object.keys(proteins).map(function (protein) {
-                        sd[protein] = spearson.standardDeviation(proteins[protein]);
+                    $("#rppa-barchart").on("show", function (ev) {
+
+                        var sd;
+
+                     // Draw visualization only once.
+                        if ($(ev.target).has("svg").length === 0) {
+
+                         // Calculate the standard deviation of the expression levels for each protein.
+                            sd = {};
+                            Object.keys(proteins).map(function (protein) {
+                                sd[protein] = spearson.standardDeviation(proteins[protein]);
+                            });
+
+                         // Make data available to other modules.
+                            TCGA.data["rppa-sd"] = sd;
+
+                         // Draw bar chart.
+                            barchart(sd, {
+                                parentElement: $("div", ev.target)[0],
+                                width: 908
+                            });
+
+                        }
+
                     });
 
-                 // Make data available to other modules.
-                    TCGA.data["rppa-sd"] = sd;
+                    $("#rppa-heatmap").on("show", function (ev) {
 
-                 // Draw bar chart.
-                    barchart(sd, {
-                        parentElement: document.querySelector("#rppa-barchart div"),
-                        width: 908
-                    });
+                        var cor;
 
-                 /***
-                  * Calculate the correlation coefficients of all protein expression levels. */
-                    cor = {};
-                    Object.keys(proteins).forEach(function (protein1) {
-                        Object.keys(proteins).forEach(function (protein2) {
-                            if (cor[protein1] === undefined) {
-                                cor[protein1] = {};
-                            }
-                            cor[protein1][protein2] = spearson.correlation.pearson(proteins[protein1], proteins[protein2]);
-                        });
-                    });
+                     // Draw visualization only once.
+                        if ($(ev.target).has("svg").length === 0) {
 
-                 // Make data available to other modules.
-                    TCGA.data["rppa-cor"] = cor;
+                         // Calculate the correlation coefficients of all protein expression levels.
+                            cor = {};
+                            Object.keys(proteins).forEach(function (protein1) {
+                                Object.keys(proteins).forEach(function (protein2) {
+                                    if (cor[protein1] === undefined) {
+                                        cor[protein1] = {};
+                                    }
+                                    cor[protein1][protein2] = spearson.correlation.pearson(proteins[protein1], proteins[protein2]);
+                                });
+                            });
 
-                 // Draw heatmap.
-                    heatmap(cor, {
-                        parentElement: document.querySelector("#rppa-heatmap div"),
-                        width: 908,
-                        height: 908
+                         // Make data available to other modules.
+                            TCGA.data["rppa-cor"] = cor;
+
+                         // Draw heatmap.
+                            heatmap(cor, {
+                                parentElement: $("div", ev.target)[0],
+                                width: 908,
+                                height: 908
+                            });
+
+                        }
+
                     });
 
                 });
