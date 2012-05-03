@@ -1,8 +1,6 @@
 (function () {
     "use strict";
 
-    console.log("Loading dependencies...");
-
  // Load dependencies.
     TCGA.loadScript(["https://raw.github.com/caolan/async/master/dist/async.min.js",
                      "https://raw.github.com/agrueneberg/Ganesha/master/ganesha.js",
@@ -17,11 +15,11 @@
         TCGA.registerTab({
             id: "rppa",
             title: "RPPA",
-            content: "<div class=\"page-header\"><h1>RPPA</h1></div><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-barchart\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-barchart\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-heatmap\">Pearson correlation coefficients of protein pairs</a></div><div id=\"rppa-heatmap\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div></div>",
+            content: "<div class=\"page-header\"><h1>RPPA</h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content-options\" class=\"accordion\" style=\"display: none;\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-barchart\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-barchart\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-heatmap\">Pearson correlation coefficients of protein pairs</a></div><div id=\"rppa-heatmap\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div></div>",
             switchTab: true
         });
 
-        console.log("Querying hub...");
+        $("#rppa-progress-bar p").html("Querying hub...");
 
         query = ["prefix tcga:<http://tcga.github.com/#>",
                  "select distinct ?name ?url",
@@ -41,7 +39,7 @@
 
         TCGA.hub.query(query, function (err, data) {
 
-            var files, queue;
+            var files, queue, filesDownloaded;
 
          // Create empty list of files.
             files = {};
@@ -50,6 +48,10 @@
             data.values.forEach(function (triple) {
                 files[triple[1].substring(1, triple[1].length - 1)] = null;
             });
+
+         // Initialize progress bar.
+            filesDownloaded = 0;
+            $("#rppa-progress-bar p").html("Downloading files...");
 
          // Download files.
             queue = async.queue(function (file, callback) {
@@ -63,6 +65,11 @@
             queue.drain = function () {
 
                 var job, map;
+
+             // Hide progress bar, display content options.
+                $("#rppa-progress-bar").fadeOut("slow", function () {
+                    $("#rppa-content-options").fadeIn("slow");
+                });
 
                 map = function (fileName, content, emit) {
                     content.split("\n").forEach(function (line) {
@@ -154,9 +161,14 @@
          // Add files to queue.
             Object.keys(files).map(function (file) {
                 queue.push(file, function () {
-                    console.log("Downloaded", file);
+
                  // Add file to list of samples.
                     $("#rppa-samples ul").append("<li><a href=" + file + ">" + file.substring(178, file.length) + "</a></li>");
+
+                 // Change progress bar.
+                    filesDownloaded++;
+                    $("#rppa-progress-bar .progress div").css("width", ((filesDownloaded / Object.keys(files).length) * 100) + "%");
+
                 });
             });
 
