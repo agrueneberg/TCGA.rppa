@@ -15,7 +15,7 @@
         TCGA.registerTab({
             id: "rppa",
             title: "RPPA",
-            content: "<style>rect.bar {stroke: white; fill: steelblue} .axis path,.axis line {fill: none; stroke: black; shape-rendering: crispEdges} .axis text {font-family: sans-serif; font-size: 11px}</style><div class=\"page-header\"><h1>RPPA</h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content-options\" class=\"accordion\" style=\"display: none;\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-barchart\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-barchart\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-heatmap\">Pearson correlation coefficients of protein pairs</a></div><div id=\"rppa-heatmap\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div></div>",
+            content: "<style>rect.bar {stroke: white; fill: steelblue} .axis path,.axis line {fill: none; stroke: black; shape-rendering: crispEdges} .axis text {font-family: sans-serif; font-size: 11px}</style><div class=\"page-header\"><h1>RPPA</h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content\" style=\"display: none;\"><p><span class=\"label label-info\">Tip</span> The results of various computations are stored in <code>TCGA.data</code>.</p><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-sd\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-sd\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><h3>Barchart</h3><div id=\"rppa-sd-barchart\"></div><h3>Data</h3><div id=\"rppa-sd-table\"><table class=\"table table-striped\"></table></div></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-heatmap\">Pearson correlation coefficients of protein pairs (this might take a while)</a></div><div id=\"rppa-heatmap\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div></div></div>",
             switchTab: true
         });
 
@@ -68,7 +68,7 @@
 
              // Hide progress bar, display content options.
                 $("#rppa-progress-bar").fadeOut("slow", function () {
-                    $("#rppa-content-options").fadeIn("slow");
+                    $("#rppa-content").fadeIn("slow");
                 });
 
                 map = function (fileName, content, emit) {
@@ -93,11 +93,11 @@
                  // Make raw data available to other modules.
                     TCGA.data["rppa"] = proteins;
 
-                    $("#rppa-barchart").on("show", function (ev) {
+                    $("#rppa-sd").on("show", function (ev) {
 
                         var sd;
 
-                     // Draw visualization only once.
+                     // Render information only once.
                         if ($(ev.target).has("svg").length === 0) {
 
                          // Calculate the standard deviation of the expression levels for each protein.
@@ -111,8 +111,13 @@
 
                          // Draw bar chart.
                             barchart(sd, {
-                                parentElement: $("div", ev.target)[0],
+                                parentElement: $("#rppa-sd-barchart", ev.target)[0],
                                 width: 908
+                            });
+
+                         // Copy values into table.
+                            Object.keys(sd).forEach(function (protein) {
+                                $("#rppa-sd-table table", ev.target).append("<tr><td>" + protein + "</td><td>" + sd[protein] + "</td></tr>");
                             });
 
                         }
