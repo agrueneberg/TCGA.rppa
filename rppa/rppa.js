@@ -15,7 +15,7 @@
         TCGA.registerTab({
             id: "rppa",
             title: "RPPA",
-            content: "<style>rect.bar {stroke: white; fill: steelblue} .axis path,.axis line {fill: none; stroke: black; shape-rendering: crispEdges} .axis text {font-family: sans-serif; font-size: 11px}</style><div class=\"page-header\"><h1>RPPA</h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content\" style=\"display: none;\"><p><span class=\"label label-info\">Tip</span> The results of various computations are stored in <code>TCGA.data</code>.</p><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-sd\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-sd\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><h3>Barchart</h3><div id=\"rppa-sd-barchart\"></div><h3>Data</h3><div id=\"rppa-sd-table\"><table class=\"table table-striped\"></table></div></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-heatmap\">Pearson correlation coefficients of protein pairs (this might take a while)</a></div><div id=\"rppa-heatmap\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"></div></div></div></div></div>",
+            content: "<style>rect.bar {stroke: white; fill: steelblue} .axis path,.axis line {fill: none; stroke: black; shape-rendering: crispEdges} .axis text {font-family: sans-serif; font-size: 11px}</style><div class=\"page-header\"><h1>RPPA <small>Real time querying and plotting of level 3 reverse phase protein data for GBM.</small></h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content\" style=\"display: none;\"><p><span class=\"label label-info\">Tip</span> The results of various computations are stored in <code>TCGA.data</code>.</p><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-sd\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-sd\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-sd-barchart\"></div><div id=\"rppa-sd-table\"><table class=\"table table-striped\"><thead><tr><th>Protein</th><th>Standard deviation</th></tr></thead><tbody></tbody></table></div></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-cor\">Pearson correlation coefficients of protein pairs (this might take a while)</a></div><div id=\"rppa-cor\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-cor-heatmap\"></div></div></div></div></div></div>",
             switchTab: true
         });
 
@@ -95,7 +95,7 @@
 
                     $("#rppa-sd").on("show", function (ev) {
 
-                        var sd;
+                        var sd, viz;
 
                      // Render information only once.
                         if ($(ev.target).has("svg").length === 0) {
@@ -109,24 +109,26 @@
                          // Make data available to other modules.
                             TCGA.data["rppa-sd"] = sd;
 
-                         // Draw bar chart.
-                            barchart(sd, {
-                                parentElement: $("#rppa-sd-barchart", ev.target)[0],
-                                width: 908
-                            });
+                         // Initialize bar chart.
+                            viz = barchart().width(908);
+
+                         // Generate bar chart.
+                            d3.select("#rppa-sd-barchart")
+                              .datum(sd)
+                              .call(viz);
 
                          // Copy values into table.
                             Object.keys(sd).forEach(function (protein) {
-                                $("#rppa-sd-table table", ev.target).append("<tr><td>" + protein + "</td><td>" + sd[protein] + "</td></tr>");
+                                $("#rppa-sd-table table tbody", ev.target).append("<tr><td>" + protein + "</td><td>" + sd[protein] + "</td></tr>");
                             });
 
                         }
 
                     });
 
-                    $("#rppa-heatmap").on("show", function (ev) {
+                    $("#rppa-cor").on("show", function (ev) {
 
-                        var cor;
+                        var cor, viz;
 
                      // Draw visualization only once.
                         if ($(ev.target).has("svg").length === 0) {
@@ -145,12 +147,13 @@
                          // Make data available to other modules.
                             TCGA.data["rppa-cor"] = cor;
 
-                         // Draw heatmap.
-                            heatmap(cor, {
-                                parentElement: $("div", ev.target)[0],
-                                width: 908,
-                                height: 908
-                            });
+                         // Initialize heatmap.
+                            viz = heatmap().width(908).height(908);
+
+                         // Generate bar chart.
+                            d3.select("#rppa-cor-heatmap")
+                              .datum(cor)
+                              .call(viz);
 
                         }
 
