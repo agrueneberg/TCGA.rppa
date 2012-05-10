@@ -21,7 +21,9 @@
 
         $("#rppa-progress-bar p").html("Querying hub...");
 
-        query = ["prefix tcga:<http://tcga.github.com/#>",
+        query = ["prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
+                 "prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
+                 "prefix tcga:<http://tcga.github.com/#>",
                  "select distinct ?name ?url",
                  "where {",
                  "    ?file tcga:platform ?platform .",
@@ -45,7 +47,7 @@
             files = {};
 
          // Get file names.
-            data.values.forEach(function (triple) {
+            data.forEach(function (triple) {
                 files[triple[1].substring(1, triple[1].length - 1)] = null;
             });
 
