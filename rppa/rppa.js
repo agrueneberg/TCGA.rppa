@@ -152,7 +152,7 @@
                          // Initialize heatmap.
                             viz = heatmap().width(908).height(908);
 
-                         // Generate bar chart.
+                         // Generate heatmap.
                             d3.select("#rppa-cor-heatmap")
                               .datum(cor)
                               .call(viz);
