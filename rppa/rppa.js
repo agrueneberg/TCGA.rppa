@@ -137,8 +137,8 @@
 
                          // Calculate the correlation coefficients of all protein expression levels.
                             cor = {};
-                            Object.keys(proteins).forEach(function (protein1) {
-                                Object.keys(proteins).forEach(function (protein2) {
+                            Object.keys(proteins).map(function (protein1) {
+                                Object.keys(proteins).map(function (protein2) {
                                     if (cor[protein1] === undefined) {
                                         cor[protein1] = {};
                                     }
