@@ -24,7 +24,7 @@
         query = ["prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
                  "prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
                  "prefix tcga:<http://tcga.github.com/#>",
-                 "select distinct ?name ?url",
+                 "select ?url",
                  "where {",
                  "    ?file tcga:platform ?platform .",
                  "    ?platform rdfs:label \"mda_rppa_core\" .",
@@ -39,31 +39,51 @@
                  "    ?file tcga:url ?url .",
                  "}"].join("\n");
 
-        TCGA.hub.query(query, function (err, data) {
+        TCGA.hub.query(query, function (err, links) {
 
-            var files, queue, filesDownloaded;
-
-         // Create empty list of files.
-            files = {};
-
-         // Get file names.
-            data.forEach(function (triple) {
-                files[triple[1].substring(1, triple[1].length - 1)] = null;
-            });
+            var filesDownloaded, files, queue;
 
          // Initialize progress bar.
             filesDownloaded = 0;
             $("#rppa-progress-bar p").html("Downloading files...");
 
-         // Download files.
+         // Normalize query result set.
+            links = links.map(function (link) {
+                return link[0].substring(1, link[0].length - 1);
+            });
+
+         // Create empty list of files.
+            files = {};
+
+         // Create download queue.
             queue = async.queue(function (file, callback) {
+
+             // Download individual files.
                 TCGA.get(file, function (err, body) {
+
+                 // Append file content to list of files.
                     files[file] = body;
                     callback();
+
                 });
+
             }, 2);
 
-         // This is what happens after all files were downloaded.
+         // Push files into queue.
+            links.map(function (link) {
+                queue.push(link, function () {
+
+                 // Add file to list of samples.
+                    $("#rppa-samples ul").append("<li><a href=" + link + ">" + link.substring(178, link.length) + "</a></li>");
+
+                 // Change progress bar.
+                    filesDownloaded++;
+                    $("#rppa-progress-bar .progress div").css("width", ((filesDownloaded / links.length) * 100) + "%");
+
+                });
+            });
+
+         // Define what should happen when the last element was removed from the queue.
             queue.drain = function () {
 
                 var job, map;
@@ -167,20 +187,6 @@
                 ganesha.submitJob(job);
 
             };
-
-         // Add files to queue.
-            Object.keys(files).map(function (file) {
-                queue.push(file, function () {
-
-                 // Add file to list of samples.
-                    $("#rppa-samples ul").append("<li><a href=" + file + ">" + file.substring(178, file.length) + "</a></li>");
-
-                 // Change progress bar.
-                    filesDownloaded++;
-                    $("#rppa-progress-bar .progress div").css("width", ((filesDownloaded / Object.keys(files).length) * 100) + "%");
-
-                });
-            });
 
         });
 
