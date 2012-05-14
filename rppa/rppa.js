@@ -136,7 +136,7 @@
                     function (proteins) {
 
                      // Make raw data available to other modules.
-                        TCGA.data["rppa"] = proteins;
+                        TCGA.data["rppa-proteins"] = proteins;
 
                         $("#rppa-sd").on("show", function (ev) {
 
@@ -152,7 +152,7 @@
                                 });
 
                              // Make data available to other modules.
-                                TCGA.data["rppa-sd"] = sd;
+                                TCGA.data["rppa-proteins-sd"] = sd;
 
                              // Initialize bar chart.
                                 viz = barchart().width(908);
@@ -190,7 +190,7 @@
                                 });
 
                              // Make data available to other modules.
-                                TCGA.data["rppa-cor"] = cor;
+                                TCGA.data["rppa-proteins-cor"] = cor;
 
                              // Initialize heatmap.
                                 viz = heatmap().width(908).height(908);
