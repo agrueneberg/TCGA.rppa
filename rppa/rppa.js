@@ -20,6 +20,7 @@
         });
 
         $("#rppa-progress-bar p").html("Querying hub...");
+        $("#rppa-progress-bar .progress div").css("width", "1%");
 
         query = ["prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
                  "prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
@@ -105,7 +106,7 @@
 
                  // Change progress bar.
                     filesDownloaded++;
-                    $("#rppa-progress-bar .progress div").css("width", ((filesDownloaded / links.length) * 100) + "%");
+                    $("#rppa-progress-bar .progress div").css("width", 1 + ((filesDownloaded / links.length) * 99) + "%");
 
                 });
             });
