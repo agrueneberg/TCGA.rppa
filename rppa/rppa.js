@@ -22,9 +22,8 @@
         $("#rppa-progress-bar p").html("Querying hub...");
         $("#rppa-progress-bar .progress div").css("width", "1%");
 
-        query = ["prefix rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
-                 "prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
-                 "prefix tcga:<http://tcga.github.com/#>",
+        query = ["prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
+                 "prefix tcga:<http://purl.org/tcga/core#>",
                  "select ?url",
                  "where {",
                  "    ?file tcga:platform ?platform .",
@@ -33,10 +32,6 @@
                  "    ?diseaseStudy rdfs:label \"gbm\" .",
                  "    ?file rdfs:label ?name .",
                  "    filter contains(?name, \"Level_3\")",
-                 "    minus {",
-                 "        ?file rdfs:label ?name .",
-                 "        filter contains(?name, \".tar.gz\")",
-                 "    }",
                  "    ?file tcga:url ?url .",
                  "}"].join("\n");
 
