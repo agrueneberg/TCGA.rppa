@@ -36,7 +36,7 @@
 
         TCGA.hub.query(query, function (err, links) {
 
-            var filesDownloaded, samples, queue;
+            var filesDownloaded, data, queue;
 
          // Initialize progress bar.
             filesDownloaded = 0;
@@ -201,7 +201,7 @@
 
                 });
 
-            }
+            };
 
         });
 
