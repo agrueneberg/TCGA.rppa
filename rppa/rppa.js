@@ -3,7 +3,6 @@
 
  // Load dependencies.
     TCGA.loadScript(["https://raw.github.com/caolan/async/master/dist/async.min.js",
-                     "https://raw.github.com/agrueneberg/Ganesha/master/ganesha.js",
                      "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
                      "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
                      "https://raw.github.com/agrueneberg/Viz/master/barchart/barchart.js",
@@ -48,8 +47,9 @@
                 return link[0].substring(1, link[0].length - 1);
             });
 
-         // Create empty list of samples.
-            samples = {};
+         // Collect the data in the following denormalized form:
+         // Sample_Reference_Id Composite_Element_Ref Protein Protein_Expression
+            data = [];
 
          // Create download queue.
             queue = async.queue(function (file, callback) {
@@ -57,34 +57,35 @@
              // Download individual files.
                 TCGA.get(file, function (err, body) {
 
-                    var sampleName, expressionLevels;
+                    var expressionLevels, sampleRef, compositeElementRef;
 
                  // Parse file.
                     expressionLevels = {};
                     body.split("\n").forEach(function (line, i) {
-                        var tuple, protein, expression;
+                        var tuple, expression;
                      // Ignore empty lines.
                         if (line !== "") {
                             tuple = line.split("\t");
-                            protein = tuple[0];
-                            switch (protein) {
-                                case "Sample REF":
-                                 // Use Sample REF as the name of the sample.
-                                    sampleName = tuple[1];
-                                    break;
-                                case "Composite Element REF":
-                                 // Ignore.
-                                    break;
-                                default:
-                                    expression = Number(tuple[1]);
-                                    expressionLevels[protein] = expression;
-                                    break;
+                            if (tuple[0] === "Sample REF") {
+                             // Extract Sample REF.
+                                sampleRef = tuple[1];
+                            } else if (tuple[0] === "Composite Element REF") {
+                             // Extract Composite Element REF.
+                                compositeElementRef = tuple[1];
+                            } else {
+                             // Extract proteins and their expression levels.
+                                expression = Number(tuple[1]);
+                                expressionLevels[tuple[0]] = expression;
                             }
                         }
                     });
 
-                 // Append sample to the list of samples.
-                    samples[sampleName] = expressionLevels;
+                 // I have never seen a case where Sample REF and Composite Element REF were not at the top,
+                 // but parsing the whole document before writing them into the table is more robust and might
+                 // prevent potential errors. Unless of course, those values are missing.
+                    Object.keys(expressionLevels).map(function (protein) {
+                        data.push([sampleRef, compositeElementRef, protein, expressionLevels[protein]]);
+                    });
 
                     callback();
 
@@ -109,7 +110,7 @@
          // Define what should happen when the last element was removed from the queue.
             queue.drain = function () {
 
-                var job;
+                var proteins;
 
              // Hide progress bar, display content options.
                 $("#rppa-progress-bar").fadeOut("slow", function () {
@@ -117,96 +118,90 @@
                 });
 
              // Make raw data available to other modules.
-                TCGA.data["rppa-samples"] = samples;
+                TCGA.data["rppa-data"] = data;
 
-             // Create a MapReduce job that groups all values together.
-                job = ganesha.createJob(
-                    samples,
-                 // The map function.
-                    function (sampleName, expressionLevels, emit) {
-                        Object.keys(expressionLevels).map(function (protein) {
-                            emit(protein, expressionLevels[protein]);
-                        });
-                    },
-                 // The output function.
-                    function (proteins) {
+             // Collect proteins.
+                proteins = {};
+                data.forEach(function (observation) {
+                    var protein, expression;
+                    protein = observation[2];
+                    expression = observation[3];
+                    if (proteins.hasOwnProperty(protein) === false) {
+                        proteins[protein] = [];
+                    }
+                    proteins[protein].push(expression);
+                });
 
-                     // Make raw data available to other modules.
-                        TCGA.data["rppa-proteins"] = proteins;
+             // Make raw data available to other modules.
+                TCGA.data["rppa-proteins"] = proteins;
 
-                        $("#rppa-sd").on("show", function (ev) {
+                $("#rppa-sd").on("show", function (ev) {
 
-                            var sd, viz;
+                    var sd, viz;
 
-                         // Render information only once.
-                            if ($(ev.target).has("svg").length === 0) {
+                 // Render information only once.
+                    if ($(ev.target).has("svg").length === 0) {
 
-                             // Calculate the standard deviation of the expression levels for each protein.
-                                sd = {};
-                                Object.keys(proteins).map(function (protein) {
-                                    sd[protein] = spearson.standardDeviation(proteins[protein]);
-                                });
-
-                             // Make data available to other modules.
-                                TCGA.data["rppa-proteins-sd"] = sd;
-
-                             // Initialize bar chart.
-                                viz = barchart().width(908);
-
-                             // Generate bar chart.
-                                d3.select("#rppa-sd-barchart")
-                                  .datum(sd)
-                                  .call(viz);
-
-                             // Copy values into table.
-                                Object.keys(sd).forEach(function (protein) {
-                                    $("#rppa-sd-table table tbody", ev.target).append("<tr><td>" + protein + "</td><td>" + sd[protein] + "</td></tr>");
-                                });
-
-                            }
-
+                     // Calculate the standard deviation of the expression levels for each protein.
+                        sd = {};
+                        Object.keys(proteins).map(function (protein) {
+                            sd[protein] = spearson.standardDeviation(proteins[protein]);
                         });
 
-                        $("#rppa-cor").on("show", function (ev) {
+                     // Make data available to other modules.
+                        TCGA.data["rppa-proteins-sd"] = sd;
 
-                            var cor, viz;
+                     // Initialize bar chart.
+                        viz = barchart().width(908);
 
-                         // Draw visualization only once.
-                            if ($(ev.target).has("svg").length === 0) {
+                     // Generate bar chart.
+                        d3.select("#rppa-sd-barchart")
+                          .datum(sd)
+                          .call(viz);
 
-                             // Calculate the correlation coefficients of all protein expression levels.
-                                cor = {};
-                                Object.keys(proteins).map(function (protein1) {
-                                    Object.keys(proteins).map(function (protein2) {
-                                        if (cor[protein1] === undefined) {
-                                            cor[protein1] = {};
-                                        }
-                                        cor[protein1][protein2] = spearson.correlation.pearson(proteins[protein1], proteins[protein2]);
-                                    });
-                                });
-
-                             // Make data available to other modules.
-                                TCGA.data["rppa-proteins-cor"] = cor;
-
-                             // Initialize heatmap.
-                                viz = heatmap().width(908).height(908);
-
-                             // Generate heatmap.
-                                d3.select("#rppa-cor-heatmap")
-                                  .datum(cor)
-                                  .call(viz);
-
-                            }
-
+                     // Copy values into table.
+                        Object.keys(sd).forEach(function (protein) {
+                            $("#rppa-sd-table table tbody", ev.target).append("<tr><td>" + protein + "</td><td>" + sd[protein] + "</td></tr>");
                         });
 
                     }
-                );
 
-             // Submit job.
-                ganesha.submitJob(job);
+                });
 
-            };
+                $("#rppa-cor").on("show", function (ev) {
+
+                    var cor, viz;
+
+                 // Draw visualization only once.
+                    if ($(ev.target).has("svg").length === 0) {
+
+                     // Calculate the correlation coefficients of all protein expression levels.
+                        cor = {};
+                        Object.keys(proteins).map(function (protein1) {
+                            Object.keys(proteins).map(function (protein2) {
+                                if (cor[protein1] === undefined) {
+                                    cor[protein1] = {};
+                                }
+                                cor[protein1][protein2] = spearson.correlation.pearson(proteins[protein1], proteins[protein2]);
+                            });
+                        });
+
+                     // Make data available to other modules.
+                        TCGA.data["rppa-proteins-cor"] = cor;
+
+                     // Initialize heatmap.
+                        viz = heatmap().width(908).height(908);
+
+                     // Generate heatmap.
+                        d3.select("#rppa-cor-heatmap")
+                          .datum(cor)
+                          .call(viz);
+
+                    }
+
+                });
+
+            }
 
         });
 
