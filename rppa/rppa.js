@@ -110,31 +110,39 @@
          // Define what should happen when the last element was removed from the queue.
             queue.drain = function () {
 
-                var proteins;
+                var generateProteinData;
+
+             // Make tidied data available to other modules.
+                TCGA.data["rppa-data"] = data;
 
              // Hide progress bar, display content options.
                 $("#rppa-progress-bar").fadeOut("slow", function () {
                     $("#rppa-content").fadeIn("slow");
                 });
 
-             // Make raw data available to other modules.
-                TCGA.data["rppa-data"] = data;
+             // Generate protein data from tidied observations.
+                generateProteinData = function (data) {
 
-             // Collect proteins.
-                proteins = {};
-                data.forEach(function (observation) {
-                    var protein, expression;
-                    protein = observation[2];
-                    expression = observation[3];
-                    if (proteins.hasOwnProperty(protein) === false) {
-                        proteins[protein] = [];
-                    }
-                    proteins[protein].push(expression);
-                });
+                    var proteins;
 
-             // Make raw data available to other modules.
-                TCGA.data["rppa-proteins"] = proteins;
+                    proteins = {};
+                    data.forEach(function (observation) {
+                        var protein, expression;
+                        protein = observation[2];
+                        expression = observation[3];
+                        if (proteins.hasOwnProperty(protein) === false) {
+                            proteins[protein] = [];
+                        }
+                        proteins[protein].push(expression);
+                    });
 
+                    return proteins;
+
+                };
+
+             /***
+              * Tidied data.
+              **/
                 $("#rppa-data").on("show", function (ev) {
 
                     var data, textarea;
@@ -158,42 +166,20 @@
 
                 });
 
-                $("#rppa-sd").on("show", function (ev) {
-
-                    var sd, viz;
-
-                 // Render information only once.
-                    if ($(ev.target).has("svg").length === 0) {
-
-                     // Calculate the standard deviation of the expression levels for each protein.
-                        sd = {};
-                        Object.keys(proteins).map(function (protein) {
-                            sd[protein] = spearson.standardDeviation(proteins[protein]);
-                        });
-
-                     // Make data available to other modules.
-                        TCGA.data["rppa-proteins-sd"] = sd;
-
-                     // Initialize bar chart.
-                        viz = barchart().width(908);
-
-                     // Generate bar chart.
-                        d3.select("#rppa-sd-barchart")
-                          .datum(sd)
-                          .call(viz);
-
-                     // Copy values into table.
-                        Object.keys(sd).forEach(function (protein) {
-                            $("#rppa-sd-table table tbody", ev.target).append("<tr><td>" + protein + "</td><td>" + sd[protein] + "</td></tr>");
-                        });
-
-                    }
-
-                });
-
+             /***
+              * Correlation coefficients of protein pairs.
+              **/
                 $("#rppa-cor").on("show", function (ev) {
 
-                    var cor, viz;
+                    var proteins, cor, viz;
+
+                    proteins = TCGA.data["rppa-proteins"];
+
+                 // Generate protein data if it has not happened yet and make it available to other modules.
+                    if (proteins === undefined) {
+                        proteins = generateProteinData(TCGA.data["rppa-data"]);
+                        TCGA.data["rppa-proteins"] = proteins;
+                    }
 
                  // Draw visualization only once.
                     if ($(ev.target).has("svg").length === 0) {
@@ -219,6 +205,50 @@
                         d3.select("#rppa-cor-heatmap")
                           .datum(cor)
                           .call(viz);
+
+                    }
+
+                });
+
+             /***
+              * Standard deviation of protein expression levels of all samples.
+              **/
+                $("#rppa-sd").on("show", function (ev) {
+
+                    var proteins, sd, viz;
+
+                    proteins = TCGA.data["rppa-proteins"];
+
+                 // Generate protein data if it has not happened yet and make it available to other modules.
+                    if (proteins === undefined) {
+                        proteins = generateProteinData(TCGA.data["rppa-data"]);
+                        TCGA.data["rppa-proteins"] = proteins;
+                    }
+
+                 // Render information only once.
+                    if ($(ev.target).has("svg").length === 0) {
+
+                     // Calculate the standard deviation of the expression levels for each protein.
+                        sd = {};
+                        Object.keys(proteins).map(function (protein) {
+                            sd[protein] = spearson.standardDeviation(proteins[protein]);
+                        });
+
+                     // Make data available to other modules.
+                        TCGA.data["rppa-proteins-sd"] = sd;
+
+                     // Initialize bar chart.
+                        viz = barchart().width(908);
+
+                     // Generate bar chart.
+                        d3.select("#rppa-sd-barchart")
+                          .datum(sd)
+                          .call(viz);
+
+                     // Copy values into table.
+                        Object.keys(sd).forEach(function (protein) {
+                            $("#rppa-sd-table table tbody", ev.target).append("<tr><td>" + protein + "</td><td>" + sd[protein] + "</td></tr>");
+                        });
 
                     }
 
