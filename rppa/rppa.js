@@ -238,7 +238,7 @@
                         TCGA.data["rppa-proteins-sd"] = sd;
 
                      // Initialize bar chart.
-                        viz = barchart().width(908);
+                        viz = barchart().width(908).minimum(0);
 
                      // Generate bar chart.
                         d3.select("#rppa-sd-barchart")
