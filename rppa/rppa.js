@@ -6,7 +6,8 @@
                      "https://raw.github.com/Mottie/tablesorter/master/js/jquery.tablesorter.min.js",
                      "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
                      "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
-                     "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js"], function () {
+                     "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js",
+                     "https://raw.github.com/agrueneberg/Viz/master/dendrogram/dendrogram.js"], function () {
 
         var query;
 
@@ -14,7 +15,7 @@
         TCGA.registerTab({
             id: "rppa",
             title: "RPPA",
-            content: "<style>.tooltip {display: none; position: absolute; padding: 5px; font-size: 13px; opacity: 100; background-color: rgba(242, 242, 242, .8)}</style><div class=\"page-header\"><h1>RPPA <small>Real time querying and plotting of level 3 reverse phase protein data for GBM.</small></h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content\" style=\"display: none;\"><p><span class=\"label label-info\">Tip</span> The results of various computations are stored in <code>TCGA.data</code>.</p><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-data\">Tidied data</a></div><div id=\"rppa-data\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><textarea class=\"span11\" rows=\"10\"></textarea><br /><a href=\"#\" id=\"rppa-data-clipboard\">Copy tidied data into clipboard</a></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-sd\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-sd\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><table id=\"rppa-sd-table\" class=\"table table-striped\"><thead><tr><th>Protein</th><th>Standard deviation</th></tr></thead><tbody></tbody></table></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-cor\">Pearson correlation coefficients of protein pairs</a></div><div id=\"rppa-cor\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-cor-heatmap\"></div></div></div></div></div></div>",
+            content: "<style>.tooltip {display: none; position: absolute; padding: 5px; font-size: 13px; opacity: 100; background-color: rgba(242, 242, 242, .8)} .node circle {fill: #fff; stroke: steelblue; stroke-width: 1.5px} .node {font: 10px sans-serif} .link {fill: none; stroke: #ccc; stroke-width: 1.5px}</style><div class=\"page-header\"><h1>RPPA <small>Real time querying and plotting of level 3 reverse phase protein data for GBM.</small></h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content\" style=\"display: none;\"><p><span class=\"label label-info\">Tip</span> The results of various computations are stored in <code>TCGA.data</code>.</p><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-data\">Tidied data</a></div><div id=\"rppa-data\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><textarea class=\"span11\" rows=\"10\"></textarea><br /><a href=\"#\" id=\"rppa-data-clipboard\">Copy tidied data into clipboard</a></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-sd\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-sd\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><table id=\"rppa-sd-table\" class=\"table table-striped\"><thead><tr><th>Protein</th><th>Standard deviation</th></tr></thead><tbody></tbody></table></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-cor\">Pearson correlation coefficients of protein pairs</a></div><div id=\"rppa-cor\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-cor-heatmap\"></div></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-clust\">Hierarchical clustering of protein correlation coefficients</a></div><div id=\"rppa-clust\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-clust-dendrogram\"></div></div></div></div></div></div>",
             switchTab: true
         });
 
@@ -265,6 +266,51 @@
                      // Generate heatmap.
                         d3.select("#rppa-cor-heatmap")
                           .datum(correlations)
+                          .call(viz);
+
+                     // Rendering is done.
+                        $(ev.target).addClass("rendered");
+
+                    }
+
+                });
+
+             /***
+              * Hierarchical clustering of protein correlation coefficients.
+              **/
+                $("#rppa-clust").on("show", function (ev) {
+
+                    var correlations, pairwiseDistances, labels, clusters, viz;
+
+                 // Do not render the same information twice.
+                    if ($(ev.target).hasClass("rendered") === false) {
+
+                        correlations = getProteinCorrelationCoefficients();
+
+                     // Calculate the pairwise distances.
+                        pairwiseDistances = Object.keys(correlations).map(function (proteinA) {
+                            return Object.keys(correlations[proteinA]).map(function (proteinB) {
+                             // The direction of the correlation coefficient is of no value,
+                             // it is only the magnitude that matters.
+                                return 1 - Math.abs(correlations[proteinA][proteinB]);
+                            });
+                        });
+
+                     // Extract labels.
+                        labels = Object.keys(correlations);
+
+                     // Run the clustering.
+                        clusters = spearson.hierarchicalClustering(pairwiseDistances, "upgma");
+
+                     // Make data available to other modules.
+                        TCGA.data["rppa-proteins-clust"] = clusters;
+
+                     // Intialize dendrogram.
+                        viz = dendrogram().width(908).height(4000).labels(labels);
+
+                     // Generate dendrogram.
+                        d3.select("#rppa-clust-dendrogram")
+                          .datum(clusters)
                           .call(viz);
 
                      // Rendering is done.
