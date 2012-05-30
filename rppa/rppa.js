@@ -219,7 +219,7 @@
               **/
                 $("#rppa-cor").on("show", function (ev) {
 
-                    var proteins, proteinLabels, cor, i, j, correlation, viz;
+                    var proteins, proteinLabels, standardizedProteins, correlations, i, j, correlation, viz;
 
                  // Do not render the same information twice.
                     if ($(ev.target).hasClass("rendered") === false) {
@@ -232,41 +232,39 @@
                             TCGA.data["rppa-proteins"] = proteins;
                         }
 
-                     // Make a copy of the protein data.
-                        proteins = JSON.parse(JSON.stringify(TCGA.data["rppa-proteins"]));
-
                      // Extract labels for fast lookup.
                         proteinLabels = Object.keys(proteins);
 
                      // Standardize expression values.
+                        standardizedProteins = {};
                         proteinLabels.map(function (protein) {
-                            proteins[protein] = spearson.standardize(proteins[protein]);
+                            standardizedProteins[protein] = spearson.standardize(proteins[protein]);
                         });
 
                      // Calculate the correlation coefficients of all protein expression levels.
-                        cor = {};
+                        correlations = {};
                         for (i = 0; i < proteinLabels.length; i++) {
-                            cor[proteinLabels[i]] = {};
+                            correlations[proteinLabels[i]] = {};
                             for (j = 0; j <= i; j++) {
                                 if (i === j) {
-                                    cor[proteinLabels[i]][proteinLabels[j]] = 1;
+                                    correlations[proteinLabels[i]][proteinLabels[j]] = 1;
                                 } else {
-                                    correlation = spearson.correlation.pearson(proteins[proteinLabels[i]], proteins[proteinLabels[j]], false);
-                                    cor[proteinLabels[i]][proteinLabels[j]] = correlation;
-                                    cor[proteinLabels[j]][proteinLabels[i]] = correlation;
+                                    correlation = spearson.correlation.pearson(standardizedProteins[proteinLabels[i]], standardizedProteins[proteinLabels[j]], false);
+                                    correlations[proteinLabels[i]][proteinLabels[j]] = correlation;
+                                    correlations[proteinLabels[j]][proteinLabels[i]] = correlation;
                                 }
                             }
                         }
 
                      // Make data available to other modules.
-                        TCGA.data["rppa-proteins-cor"] = cor;
+                        TCGA.data["rppa-proteins-cor"] = correlations;
 
                      // Initialize heatmap.
                         viz = heatmap().width(908).height(908);
 
                      // Generate heatmap.
                         d3.select("#rppa-cor-heatmap")
-                          .datum(cor)
+                          .datum(correlations)
                           .call(viz);
 
                      // Rendering is done.
