@@ -3,9 +3,9 @@
 
  // Load dependencies.
     TCGA.loadScript(["https://raw.github.com/caolan/async/master/dist/async.min.js",
+                     "https://raw.github.com/Mottie/tablesorter/master/js/jquery.tablesorter.min.js",
                      "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
                      "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
-                     "https://raw.github.com/agrueneberg/Viz/master/barchart/barchart.js",
                      "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js"], function () {
 
         var query;
@@ -14,7 +14,7 @@
         TCGA.registerTab({
             id: "rppa",
             title: "RPPA",
-            content: "<style>.bar {stroke: white; fill: #3A87AD} .bar:hover {fill: #d14} .axis path, .axis line {fill: none; stroke: black; shape-rendering: crispEdges} .axis text {font-family: sans-serif; font-size: 11px} .tooltip {display: none; position: absolute; padding: 5px; font-size: 13px; opacity: 100; background-color: rgba(242, 242, 242, .8)}</style><div class=\"page-header\"><h1>RPPA <small>Real time querying and plotting of level 3 reverse phase protein data for GBM.</small></h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content\" style=\"display: none;\"><p><span class=\"label label-info\">Tip</span> The results of various computations are stored in <code>TCGA.data</code>.</p><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-data\">Tidied data</a></div><div id=\"rppa-data\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><textarea class=\"span11\" rows=\"10\"></textarea><br /><a href=\"#\" id=\"rppa-data-clipboard\">Copy tidied data into clipboard</a></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-sd\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-sd\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-sd-barchart\"></div></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-cor\">Pearson correlation coefficients of protein pairs (this might take a while)</a></div><div id=\"rppa-cor\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-cor-heatmap\"></div></div></div></div></div></div>",
+            content: "<style>.tooltip {display: none; position: absolute; padding: 5px; font-size: 13px; opacity: 100; background-color: rgba(242, 242, 242, .8)}</style><div class=\"page-header\"><h1>RPPA <small>Real time querying and plotting of level 3 reverse phase protein data for GBM.</small></h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content\" style=\"display: none;\"><p><span class=\"label label-info\">Tip</span> The results of various computations are stored in <code>TCGA.data</code>.</p><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-data\">Tidied data</a></div><div id=\"rppa-data\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><textarea class=\"span11\" rows=\"10\"></textarea><br /><a href=\"#\" id=\"rppa-data-clipboard\">Copy tidied data into clipboard</a></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-sd\">Standard deviation of protein expression levels of all samples</a></div><div id=\"rppa-sd\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><table id=\"rppa-sd-table\" class=\"table table-striped\"><thead><tr><th>Protein</th><th>Standard deviation</th></tr></thead><tbody></tbody></table></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-cor\">Pearson correlation coefficients of protein pairs (this might take a while)</a></div><div id=\"rppa-cor\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-cor-heatmap\"></div></div></div></div></div></div>",
             switchTab: true
         });
 
@@ -201,13 +201,11 @@
                      // Make data available to other modules.
                         TCGA.data["rppa-proteins-sd"] = sd;
 
-                     // Initialize bar chart.
-                        viz = barchart().width(908).minimum(0);
-
-                     // Generate bar chart.
-                        d3.select("#rppa-sd-barchart")
-                          .datum(sd)
-                          .call(viz);
+                     // Copy values into sortable table.
+                        Object.keys(sd).forEach(function (protein) {
+                            $("#rppa-sd-table tbody", ev.target).append("<tr><td>" + protein + "</td><td>" + sd[protein] + "</td></tr>");
+                        });
+                        $("#rppa-sd-table", ev.target).tablesorter();
 
                      // Rendering is done.
                         $(ev.target).addClass("rendered");
@@ -262,7 +260,6 @@
                     }
 
                 });
-
 
             };
 
