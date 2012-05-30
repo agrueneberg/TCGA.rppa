@@ -167,6 +167,45 @@
                 });
 
              /***
+              * Standard deviation of protein expression levels of all samples.
+              **/
+                $("#rppa-sd").on("show", function (ev) {
+
+                    var proteins, sd, viz;
+
+                    proteins = TCGA.data["rppa-proteins"];
+
+                 // Generate protein data if it has not happened yet and make it available to other modules.
+                    if (proteins === undefined) {
+                        proteins = generateProteinData(TCGA.data["rppa-data"]);
+                        TCGA.data["rppa-proteins"] = proteins;
+                    }
+
+                 // Render information only once.
+                    if ($(ev.target).has("svg").length === 0) {
+
+                     // Calculate the standard deviation of the expression levels for each protein.
+                        sd = {};
+                        Object.keys(proteins).map(function (protein) {
+                            sd[protein] = spearson.standardDeviation(proteins[protein]);
+                        });
+
+                     // Make data available to other modules.
+                        TCGA.data["rppa-proteins-sd"] = sd;
+
+                     // Initialize bar chart.
+                        viz = barchart().width(908).minimum(0);
+
+                     // Generate bar chart.
+                        d3.select("#rppa-sd-barchart")
+                          .datum(sd)
+                          .call(viz);
+
+                    }
+
+                });
+
+             /***
               * Correlation coefficients of protein pairs.
               **/
                 $("#rppa-cor").on("show", function (ev) {
@@ -210,44 +249,6 @@
 
                 });
 
-             /***
-              * Standard deviation of protein expression levels of all samples.
-              **/
-                $("#rppa-sd").on("show", function (ev) {
-
-                    var proteins, sd, viz;
-
-                    proteins = TCGA.data["rppa-proteins"];
-
-                 // Generate protein data if it has not happened yet and make it available to other modules.
-                    if (proteins === undefined) {
-                        proteins = generateProteinData(TCGA.data["rppa-data"]);
-                        TCGA.data["rppa-proteins"] = proteins;
-                    }
-
-                 // Render information only once.
-                    if ($(ev.target).has("svg").length === 0) {
-
-                     // Calculate the standard deviation of the expression levels for each protein.
-                        sd = {};
-                        Object.keys(proteins).map(function (protein) {
-                            sd[protein] = spearson.standardDeviation(proteins[protein]);
-                        });
-
-                     // Make data available to other modules.
-                        TCGA.data["rppa-proteins-sd"] = sd;
-
-                     // Initialize bar chart.
-                        viz = barchart().width(908).minimum(0);
-
-                     // Generate bar chart.
-                        d3.select("#rppa-sd-barchart")
-                          .datum(sd)
-                          .call(viz);
-
-                    }
-
-                });
 
             };
 
