@@ -219,7 +219,7 @@
               **/
                 $("#rppa-cor").on("show", function (ev) {
 
-                    var proteins, cor, viz;
+                    var proteins, proteinLabels, cor, i, j, correlation, viz;
 
                  // Do not render the same information twice.
                     if ($(ev.target).hasClass("rendered") === false) {
@@ -232,16 +232,23 @@
                             TCGA.data["rppa-proteins"] = proteins;
                         }
 
+                     // Extract labels for fast lookup.
+                        proteinLabels = Object.keys(proteins);
+
                      // Calculate the correlation coefficients of all protein expression levels.
                         cor = {};
-                        Object.keys(proteins).map(function (protein1) {
-                            Object.keys(proteins).map(function (protein2) {
-                                if (cor[protein1] === undefined) {
-                                    cor[protein1] = {};
+                        for (i = 0; i < proteinLabels.length; i++) {
+                            cor[proteinLabels[i]] = {};
+                            for (j = 0; j <= i; j++) {
+                                if (i === j) {
+                                    cor[proteinLabels[i]][proteinLabels[j]] = 1;
+                                } else {
+                                    correlation = spearson.correlation.pearson(proteins[proteinLabels[i]], proteins[proteinLabels[j]]);
+                                    cor[proteinLabels[i]][proteinLabels[j]] = correlation;
+                                    cor[proteinLabels[j]][proteinLabels[i]] = correlation;
                                 }
-                                cor[protein1][protein2] = spearson.correlation.pearson(proteins[protein1], proteins[protein2]);
-                            });
-                        });
+                            }
+                        }
 
                      // Make data available to other modules.
                         TCGA.data["rppa-proteins-cor"] = cor;
