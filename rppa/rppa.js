@@ -111,7 +111,7 @@
          // Define what should happen when the last element was removed from the queue.
             queue.drain = function () {
 
-                var generateProteinData;
+                var getProteinExpressionLevels, getProteinCorrelationCoefficients;
 
              // Make tidied data available to other modules.
                 TCGA.data["rppa-data"] = data;
@@ -121,23 +121,83 @@
                     $("#rppa-content").fadeIn("slow");
                 });
 
-             // Generate protein data from tidied observations.
-                generateProteinData = function (data) {
+             // Generate proteins expression levels from from tidied observations.
+                getProteinExpressionLevels = function () {
 
                     var proteins;
 
-                    proteins = {};
-                    data.forEach(function (observation) {
-                        var protein, expression;
-                        protein = observation[2];
-                        expression = observation[3];
-                        if (proteins.hasOwnProperty(protein) === false) {
-                            proteins[protein] = [];
-                        }
-                        proteins[protein].push(expression);
-                    });
+                    if (TCGA.data.hasOwnProperty("rppa-proteins") === true) {
 
-                    return proteins;
+                     // Calculate protein expression levels only once.
+                        return TCGA.data["rppa-proteins"];
+
+                    } else {
+
+                     // Regroup observations.
+                        proteins = {};
+                        data.forEach(function (observation) {
+                            var protein, expression;
+                            protein = observation[2];
+                            expression = observation[3];
+                            if (proteins.hasOwnProperty(protein) === false) {
+                                proteins[protein] = [];
+                            }
+                            proteins[protein].push(expression);
+                        });
+
+                     // Make data available to other modules.
+                        TCGA.data["rppa-proteins"] = proteins;
+
+                        return proteins;
+
+                    }
+
+                };
+
+             // Generate protein correlation coefficients from protein expression levels.
+                getProteinCorrelationCoefficients = function () {
+
+                    var proteins, proteinLabels, standardizedProteins, correlations, i, j, correlation;
+
+                    if (TCGA.data.hasOwnProperty("rppa-proteins-cor") === true) {
+
+                     // Calculate protein correlation coefficients only once.
+                        return TCGA.data["rppa-proteins-cor"];
+
+                    } else {
+
+                        proteins = getProteinExpressionLevels();
+
+                     // Extract labels for fast lookup.
+                        proteinLabels = Object.keys(proteins);
+
+                     // Standardize expression values.
+                        standardizedProteins = {};
+                        proteinLabels.map(function (protein) {
+                            standardizedProteins[protein] = spearson.standardize(proteins[protein]);
+                        });
+
+                     // Calculate the correlation coefficients of all protein expression levels.
+                        correlations = {};
+                        for (i = 0; i < proteinLabels.length; i++) {
+                            correlations[proteinLabels[i]] = {};
+                            for (j = 0; j <= i; j++) {
+                                if (i === j) {
+                                    correlations[proteinLabels[i]][proteinLabels[j]] = 1;
+                                } else {
+                                    correlation = spearson.correlation.pearson(standardizedProteins[proteinLabels[i]], standardizedProteins[proteinLabels[j]], false);
+                                    correlations[proteinLabels[i]][proteinLabels[j]] = correlation;
+                                    correlations[proteinLabels[j]][proteinLabels[i]] = correlation;
+                                }
+                            }
+                        }
+
+                     // Make data available to other modules.
+                        TCGA.data["rppa-proteins-cor"] = correlations;
+
+                        return correlations;
+
+                    }
 
                 };
 
@@ -185,13 +245,7 @@
                  // Do not render the same information twice.
                     if ($(ev.target).hasClass("rendered") === false) {
 
-                        proteins = TCGA.data["rppa-proteins"];
-
-                     // Generate protein data if it has not happened yet and make it available to other modules.
-                        if (proteins === undefined) {
-                            proteins = generateProteinData(TCGA.data["rppa-data"]);
-                            TCGA.data["rppa-proteins"] = proteins;
-                        }
+                        proteins = getProteinExpressionLevels();
 
                      // Calculate the standard deviation of the expression levels for each protein.
                         sd = {};
@@ -220,45 +274,12 @@
               **/
                 $("#rppa-cor").on("show", function (ev) {
 
-                    var proteins, proteinLabels, standardizedProteins, correlations, i, j, correlation, viz;
+                    var correlations, viz;
 
                  // Do not render the same information twice.
                     if ($(ev.target).hasClass("rendered") === false) {
 
-                        proteins = TCGA.data["rppa-proteins"];
-
-                     // Generate protein data if it has not happened yet and make it available to other modules.
-                        if (proteins === undefined) {
-                            proteins = generateProteinData(TCGA.data["rppa-data"]);
-                            TCGA.data["rppa-proteins"] = proteins;
-                        }
-
-                     // Extract labels for fast lookup.
-                        proteinLabels = Object.keys(proteins);
-
-                     // Standardize expression values.
-                        standardizedProteins = {};
-                        proteinLabels.map(function (protein) {
-                            standardizedProteins[protein] = spearson.standardize(proteins[protein]);
-                        });
-
-                     // Calculate the correlation coefficients of all protein expression levels.
-                        correlations = {};
-                        for (i = 0; i < proteinLabels.length; i++) {
-                            correlations[proteinLabels[i]] = {};
-                            for (j = 0; j <= i; j++) {
-                                if (i === j) {
-                                    correlations[proteinLabels[i]][proteinLabels[j]] = 1;
-                                } else {
-                                    correlation = spearson.correlation.pearson(standardizedProteins[proteinLabels[i]], standardizedProteins[proteinLabels[j]], false);
-                                    correlations[proteinLabels[i]][proteinLabels[j]] = correlation;
-                                    correlations[proteinLabels[j]][proteinLabels[i]] = correlation;
-                                }
-                            }
-                        }
-
-                     // Make data available to other modules.
-                        TCGA.data["rppa-proteins-cor"] = correlations;
+                        correlations = getProteinCorrelationCoefficients();
 
                      // Initialize heatmap.
                         viz = heatmap().width(908).height(908);
