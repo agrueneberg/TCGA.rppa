@@ -147,22 +147,30 @@
 
                     var data, textarea;
 
-                    textarea = $("textarea", ev.target);
+                 // Do not render the same information twice.
+                    if ($(ev.target).hasClass("rendered") === false) {
 
-                 // Copy data into textarea.
-                    data = TCGA.data["rppa-data"].map(function (observation) {
-                        return observation.join("\t");
-                    }).join("\n");
-                    textarea.text(data);
+                        textarea = $("textarea", ev.target);
 
-                 // Enable copy to clipboard feature.
-                    $("#rppa-data-clipboard", ev.target).click(function (ev) {
-                        ev.preventDefault();
-                     // Select content of textbox.
-                        textarea.select();
-                     // Write current selection into clipboard.
-                        document.execCommand("copy");
-                    });
+                     // Copy data into textarea.
+                        data = TCGA.data["rppa-data"].map(function (observation) {
+                            return observation.join("\t");
+                        }).join("\n");
+                        textarea.text(data);
+
+                     // Enable copy to clipboard feature.
+                        $("#rppa-data-clipboard", ev.target).click(function (ev) {
+                            ev.preventDefault();
+                         // Select content of textbox.
+                            textarea.select();
+                         // Write current selection into clipboard.
+                            document.execCommand("copy");
+                        });
+
+                     // Rendering is done.
+                        $(ev.target).addClass("rendered");
+
+                    }
 
                 });
 
@@ -173,16 +181,16 @@
 
                     var proteins, sd, viz;
 
-                    proteins = TCGA.data["rppa-proteins"];
+                 // Do not render the same information twice.
+                    if ($(ev.target).hasClass("rendered") === false) {
 
-                 // Generate protein data if it has not happened yet and make it available to other modules.
-                    if (proteins === undefined) {
-                        proteins = generateProteinData(TCGA.data["rppa-data"]);
-                        TCGA.data["rppa-proteins"] = proteins;
-                    }
+                        proteins = TCGA.data["rppa-proteins"];
 
-                 // Render information only once.
-                    if ($(ev.target).has("svg").length === 0) {
+                     // Generate protein data if it has not happened yet and make it available to other modules.
+                        if (proteins === undefined) {
+                            proteins = generateProteinData(TCGA.data["rppa-data"]);
+                            TCGA.data["rppa-proteins"] = proteins;
+                        }
 
                      // Calculate the standard deviation of the expression levels for each protein.
                         sd = {};
@@ -201,6 +209,9 @@
                           .datum(sd)
                           .call(viz);
 
+                     // Rendering is done.
+                        $(ev.target).addClass("rendered");
+
                     }
 
                 });
@@ -212,16 +223,16 @@
 
                     var proteins, cor, viz;
 
-                    proteins = TCGA.data["rppa-proteins"];
+                 // Do not render the same information twice.
+                    if ($(ev.target).hasClass("rendered") === false) {
 
-                 // Generate protein data if it has not happened yet and make it available to other modules.
-                    if (proteins === undefined) {
-                        proteins = generateProteinData(TCGA.data["rppa-data"]);
-                        TCGA.data["rppa-proteins"] = proteins;
-                    }
+                        proteins = TCGA.data["rppa-proteins"];
 
-                 // Draw visualization only once.
-                    if ($(ev.target).has("svg").length === 0) {
+                     // Generate protein data if it has not happened yet and make it available to other modules.
+                        if (proteins === undefined) {
+                            proteins = generateProteinData(TCGA.data["rppa-data"]);
+                            TCGA.data["rppa-proteins"] = proteins;
+                        }
 
                      // Calculate the correlation coefficients of all protein expression levels.
                         cor = {};
@@ -244,6 +255,9 @@
                         d3.select("#rppa-cor-heatmap")
                           .datum(cor)
                           .call(viz);
+
+                     // Rendering is done.
+                        $(ev.target).addClass("rendered");
 
                     }
 
