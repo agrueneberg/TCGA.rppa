@@ -232,8 +232,16 @@
                             TCGA.data["rppa-proteins"] = proteins;
                         }
 
+                     // Make a copy of the protein data.
+                        proteins = JSON.parse(JSON.stringify(TCGA.data["rppa-proteins"]));
+
                      // Extract labels for fast lookup.
                         proteinLabels = Object.keys(proteins);
+
+                     // Standardize expression values.
+                        proteinLabels.map(function (protein) {
+                            proteins[protein] = spearson.standardize(proteins[protein]);
+                        });
 
                      // Calculate the correlation coefficients of all protein expression levels.
                         cor = {};
@@ -243,7 +251,7 @@
                                 if (i === j) {
                                     cor[proteinLabels[i]][proteinLabels[j]] = 1;
                                 } else {
-                                    correlation = spearson.correlation.pearson(proteins[proteinLabels[i]], proteins[proteinLabels[j]]);
+                                    correlation = spearson.correlation.pearson(proteins[proteinLabels[i]], proteins[proteinLabels[j]], false);
                                     cor[proteinLabels[i]][proteinLabels[j]] = correlation;
                                     cor[proteinLabels[j]][proteinLabels[i]] = correlation;
                                 }
