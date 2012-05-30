@@ -179,7 +179,7 @@
               **/
                 $("#rppa-sd").on("show", function (ev) {
 
-                    var proteins, sd, viz;
+                    var proteins, sd;
 
                  // Do not render the same information twice.
                     if ($(ev.target).hasClass("rendered") === false) {
