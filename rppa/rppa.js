@@ -31,8 +31,12 @@
                  "    ?file tcga:disease-study ?diseaseStudy .",
                  "    ?diseaseStudy rdfs:label \"gbm\" .",
                  "    ?file rdfs:label ?name .",
-                 "    filter contains(?name, \"Level_3\")",
                  "    ?file tcga:url ?url .",
+                 "    filter contains(?name, \"Level_3\")",
+                 "    minus {",
+                 "        ?file rdfs:label ?name .",
+                 "        filter contains(?name, \"Control\")",
+                 "    }",
                  "}"].join("\n");
 
         TCGA.hub.query(query, function (err, links) {
