@@ -15,7 +15,7 @@
         TCGA.registerTab({
             id: "rppa",
             title: "RPPA",
-            content: "<style>.tooltip {display: none; position: absolute; padding: 5px; font-size: 13px; opacity: 100; background-color: rgba(242, 242, 242, .8)} .node circle {fill: #fff; stroke: steelblue; stroke-width: 1.5px} .node {font: 10px sans-serif} .link {fill: none; stroke: #ccc; stroke-width: 1.5px}</style><div class=\"page-header\"><h1>RPPA <small>Real time querying and plotting of level 3 reverse phase protein data for GBM.</small></h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content\" style=\"display: none;\"><p><span class=\"label label-info\">Tip</span> The results of various computations are stored in <code>TCGA.data</code>.</p><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-data\">Tidied data (for use in R, MATLAB, Google Refine, ...)</a></div><div id=\"rppa-data\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><textarea class=\"span11\" rows=\"10\"></textarea><br /><a href=\"#\" id=\"rppa-data-clipboard\">Copy tidied data into clipboard</a></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-proteins-basics\">Basic statistics of protein expression levels in all samples</a></div><div id=\"rppa-proteins-basics\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><table class=\"table table-striped\"><thead><tr><th>Protein</th><th>Median</th><th>Mean</th><th>Standard deviation</th></tr></thead><tbody></tbody></table></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-proteins-correlations\">Correlation coefficients of protein pairs</a></div><div id=\"rppa-proteins-correlations\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-proteins-correlations-options\"><form class=\"form-inline\">Method: <select name=\"correlation-method\"><option value=\"pearson\">Pearson</option><option value=\"spearman\">Spearman</option></select><input type=\"submit\" value=\"Update\" class=\"btn\" /></form></div><div id=\"rppa-proteins-correlations-heatmap\"></div></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-proteins-clusters\">Hierarchical clustering of protein correlation coefficients</a></div><div id=\"rppa-proteins-clusters\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-proteins-clusters-options\"><form class=\"form-inline\">Linkage Criterion: <select name=\"linkage-criterion\"><option value=\"single\">Single</option><option value=\"complete\">Complete</option><option value=\"upgma\" selected=\"selected\">UPGMA</option></select><input type=\"submit\" value=\"Update\" class=\"btn\" /></form></div><div id=\"rppa-proteins-clusters-dendrogram\"></div></div></div></div></div></div>",
+            content: "<style>.tooltip {display: none; position: absolute; padding: 5px; font-size: 13px; opacity: 100; background-color: rgba(242, 242, 242, .8)} .node circle {fill: #fff; stroke: steelblue; stroke-width: 1.5px} .node {font: 10px sans-serif} .link {fill: none; stroke: #ccc; stroke-width: 1.5px}</style><div class=\"page-header\"><h1>RPPA <small>Real time querying and plotting of level 3 reverse phase protein data for GBM.</small></h1></div><div id=\"rppa-progress-bar\" class=\"well\"><p></p><div class=\"progress progress-striped active\"><div class=\"bar\"></div></div></div><div id=\"rppa-content\" style=\"display: none;\"><p><span class=\"label label-info\">Tip</span> The results of various computations are stored in <code>TCGA.data</code>.</p><div class=\"accordion\"><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-samples\">List of samples</a></div><div id=\"rppa-samples\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><ul></ul></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-data\">Tidied data (for use in R, MATLAB, Google Refine, ...)</a></div><div id=\"rppa-data\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><textarea class=\"span11\" rows=\"10\"></textarea><br /><a href=\"#\" id=\"rppa-data-clipboard\">Copy tidied data into clipboard</a></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-proteins-basics\">Basic statistics of protein expression levels in all samples</a></div><div id=\"rppa-proteins-basics\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><table class=\"table table-striped\" style=\"display: none;\"><thead><tr><th>Protein</th><th>Median</th><th>Mean</th><th>Standard deviation</th><th>Slide</th></tr></thead><tbody></tbody></table></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-proteins-correlations\">Correlation coefficients of protein pairs</a></div><div id=\"rppa-proteins-correlations\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-proteins-correlations-options\"><form class=\"form-inline\">Method: <select name=\"correlation-method\"><option value=\"pearson\">Pearson</option><option value=\"spearman\">Spearman</option></select><input type=\"submit\" value=\"Update\" class=\"btn\" /></form></div><div id=\"rppa-proteins-correlations-heatmap\"></div></div></div></div><div class=\"accordion-group\"><div class=\"accordion-heading\"><a class=\"accordion-toggle\" data-toggle=\"collapse\" data-target=\"#rppa-proteins-clusters\">Hierarchical clustering of protein correlation coefficients</a></div><div id=\"rppa-proteins-clusters\" class=\"accordion-body collapse\"><div class=\"accordion-inner\"><div id=\"rppa-proteins-clusters-options\"><form class=\"form-inline\">Linkage Criterion: <select name=\"linkage-criterion\"><option value=\"single\">Single</option><option value=\"complete\">Complete</option><option value=\"upgma\" selected=\"selected\">UPGMA</option></select><input type=\"submit\" value=\"Update\" class=\"btn\" /></form></div><div id=\"rppa-proteins-clusters-dendrogram\"></div></div></div></div></div></div>",
             switchTab: true
         });
 
@@ -256,18 +256,20 @@
               **/
                 $("#rppa-proteins-basics").on("show", function (ev) {
 
-                    var proteins, medians, means, standardDeviations;
+                    var proteins, proteinLabels, medians, means, standardDeviations, query;
 
                  // Do not render the same information twice.
                     if ($(ev.target).hasClass("rendered") === false) {
 
                         proteins = getProteinExpressionLevels();
 
+                        proteinLabels = Object.keys(proteins);
+
                      // Calculate the basic statistics for each protein.
                         medians = {};
                         means = {};
                         standardDeviations = {};
-                        Object.keys(proteins).map(function (protein) {
+                        proteinLabels.map(function (protein) {
                             medians[protein] = spearson.median(proteins[protein]);
                             means[protein] = spearson.mean(proteins[protein]);
                             standardDeviations[protein] = spearson.standardDeviation(proteins[protein]);
@@ -278,14 +280,47 @@
                         TCGA.data["rppa-proteins-means"] = means;
                         TCGA.data["rppa-proteins-standard-deviations"] = standardDeviations;
 
-                     // Copy values into sortable table.
-                        Object.keys(proteins).forEach(function (protein) {
-                            $("table tbody", ev.target).append("<tr><td>" + protein + "</td><td>" + medians[protein] + "</td><td>" + means[protein] + "</td><td>" + standardDeviations[protein] + "</td></tr>");
-                        });
-                        $("table", ev.target).tablesorter();
+                        query = ["prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
+                                 "prefix tcga:<http://purl.org/tcga/core#>",
+                                 "select ?url",
+                                 "where {",
+                                 "    ?file tcga:platform ?platform .",
+                                 "    ?platform rdfs:label \"mda_rppa_core\" .",
+                                 "    ?file tcga:disease-study ?diseaseStudy .",
+                                 "    ?diseaseStudy rdfs:label \"gbm\" .",
+                                 "    ?file rdfs:label ?name .",
+                                 "    ?file tcga:url ?url .",
+                                 "    filter strEnds(?name, \".tif\")",
+                                 "}"].join("\n");
 
-                     // Rendering is done.
-                        $(ev.target).addClass("rendered");
+                        TCGA.hub.query(query, function (err, sparqlResult) {
+
+                            var links;
+
+                         // Normalize query result set.
+                            sparqlResult = sparqlResult.map(function (literal) {
+                                return literal[0].substring(1, literal[0].length - 1);
+                            });
+
+                            links = {};
+                            proteinLabels.map(function (protein) {
+                                sparqlResult.map(function (link) {
+                                    if (link.indexOf(protein) !== -1) {
+                                        links[protein] = link;
+                                    }
+                                });
+                            });
+
+                         // Copy values into sortable table.
+                            proteinLabels.map(function (protein) {
+                                $("table tbody", ev.target).append("<tr><td>" + protein + "</td><td>" + medians[protein] + "</td><td>" + means[protein] + "</td><td>" + standardDeviations[protein] + "</td><td><a href=\"" + links[protein] + "\">Slide</a></td></tr>");
+                            });
+                            $("table", ev.target).tablesorter().show();
+
+                         // Rendering is done.
+                            $(ev.target).addClass("rendered");
+
+                        });
 
                     }
 
