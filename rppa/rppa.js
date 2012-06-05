@@ -118,7 +118,7 @@
                 var getProteinExpressionLevels, getProteinCorrelationCoefficients;
 
              // Make tidied data available to other modules.
-                TCGA.data["rppa-data"] = data;
+                TCGA.data["rppa-data"] = JSON.parse(JSON.stringify(data));
 
              // Hide progress bar, display content options.
                 $("#rppa-progress-bar").fadeOut("slow", function () {
@@ -133,7 +133,7 @@
                     if (TCGA.data.hasOwnProperty("rppa-proteins") === true) {
 
                      // Calculate protein expression levels only once.
-                        return TCGA.data["rppa-proteins"];
+                        return JSON.parse(JSON.stringify(TCGA.data["rppa-proteins"]));
 
                     } else {
 
@@ -150,7 +150,7 @@
                         });
 
                      // Make data available to other modules.
-                        TCGA.data["rppa-proteins"] = proteins;
+                        TCGA.data["rppa-proteins"] = JSON.parse(JSON.stringify(proteins));
 
                         return proteins;
 
@@ -166,7 +166,7 @@
                     if (TCGA.data.hasOwnProperty("rppa-proteins-correlations-" + method) === true) {
 
                      // Calculate protein correlation coefficients for a specific method only once.
-                        return TCGA.data["rppa-proteins-correlations-" + method];
+                        return JSON.parse(JSON.stringify(TCGA.data["rppa-proteins-correlations-" + method]));
 
                     } else {
 
@@ -209,7 +209,7 @@
                         }
 
                      // Make data available to other modules.
-                        TCGA.data["rppa-proteins-correlations-" + method] = correlations;
+                        TCGA.data["rppa-proteins-correlations-" + method] = JSON.parse(JSON.stringify(correlations));
 
                         return correlations;
 
@@ -229,10 +229,12 @@
                      // Do not render the same information twice.
                         if ($(el).hasClass("rendered") === false) {
 
+                            data = JSON.parse(JSON.stringify(TCGA.data["rppa-data"]));
+
                             textarea = $("textarea", el);
 
                          // Copy data into textarea.
-                            data = TCGA.data["rppa-data"].map(function (observation) {
+                            data = data.map(function (observation) {
                                 return observation.join("\t");
                             }).join("\n");
                             textarea.text(data);
@@ -282,9 +284,9 @@
                             });
 
                          // Make data available to other modules.
-                            TCGA.data["rppa-proteins-medians"] = medians;
-                            TCGA.data["rppa-proteins-means"] = means;
-                            TCGA.data["rppa-proteins-standard-deviations"] = standardDeviations;
+                            TCGA.data["rppa-proteins-medians"] = JSON.parse(JSON.stringify(medians));
+                            TCGA.data["rppa-proteins-means"] = JSON.parse(JSON.stringify(means));
+                            TCGA.data["rppa-proteins-standard-deviations"] = JSON.parse(JSON.stringify(standardDeviations));
 
                             query = ["prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
                                      "prefix tcga:<http://purl.org/tcga/core#>",
@@ -417,7 +419,7 @@
                                 clusters = spearson.hierarchicalClustering(pairwiseDistances, linkage);
 
                              // Make data available to other modules.
-                                TCGA.data["rppa-proteins-clusters"] = clusters;
+                                TCGA.data["rppa-proteins-clusters"] = JSON.parse(JSON.stringify(clusters));
 
                              // Intialize dendrogram.
                                 viz = dendrogram().width(908).height(4000).labels(labels);
