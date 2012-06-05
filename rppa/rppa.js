@@ -222,32 +222,36 @@
               **/
                 $("#rppa-data").on("show", function (ev) {
 
-                    var data, textarea;
+                    (function (el) {
 
-                 // Do not render the same information twice.
-                    if ($(ev.target).hasClass("rendered") === false) {
+                        var data, textarea;
 
-                        textarea = $("textarea", ev.target);
+                     // Do not render the same information twice.
+                        if ($(el).hasClass("rendered") === false) {
 
-                     // Copy data into textarea.
-                        data = TCGA.data["rppa-data"].map(function (observation) {
-                            return observation.join("\t");
-                        }).join("\n");
-                        textarea.text(data);
+                            textarea = $("textarea", el);
 
-                     // Enable copy to clipboard feature.
-                        $("#rppa-data-clipboard", ev.target).click(function (ev) {
-                            ev.preventDefault();
-                         // Select content of textbox.
-                            textarea.select();
-                         // Write current selection into clipboard.
-                            document.execCommand("copy");
-                        });
+                         // Copy data into textarea.
+                            data = TCGA.data["rppa-data"].map(function (observation) {
+                                return observation.join("\t");
+                            }).join("\n");
+                            textarea.text(data);
 
-                     // Rendering is done.
-                        $(ev.target).addClass("rendered");
+                         // Enable copy to clipboard feature.
+                            $("#rppa-data-clipboard", el).click(function (ev) {
+                                ev.preventDefault();
+                             // Select content of textbox.
+                                textarea.select();
+                             // Write current selection into clipboard.
+                                document.execCommand("copy");
+                            });
 
-                    }
+                         // Rendering is done.
+                            $(el).addClass("rendered");
+
+                        }
+
+                    }(ev.target));
 
                 });
 
@@ -256,73 +260,77 @@
               **/
                 $("#rppa-proteins-basics").on("show", function (ev) {
 
+                    (function (el) {
+
                     var proteins, proteinLabels, medians, means, standardDeviations, query;
 
-                 // Do not render the same information twice.
-                    if ($(ev.target).hasClass("rendered") === false) {
+                     // Do not render the same information twice.
+                        if ($(el).hasClass("rendered") === false) {
 
-                        proteins = getProteinExpressionLevels();
+                            proteins = getProteinExpressionLevels();
 
-                        proteinLabels = Object.keys(proteins);
+                            proteinLabels = Object.keys(proteins);
 
-                     // Calculate the basic statistics for each protein.
-                        medians = {};
-                        means = {};
-                        standardDeviations = {};
-                        proteinLabels.map(function (protein) {
-                            medians[protein] = spearson.median(proteins[protein]);
-                            means[protein] = spearson.mean(proteins[protein]);
-                            standardDeviations[protein] = spearson.standardDeviation(proteins[protein]);
-                        });
-
-                     // Make data available to other modules.
-                        TCGA.data["rppa-proteins-medians"] = medians;
-                        TCGA.data["rppa-proteins-means"] = means;
-                        TCGA.data["rppa-proteins-standard-deviations"] = standardDeviations;
-
-                        query = ["prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
-                                 "prefix tcga:<http://purl.org/tcga/core#>",
-                                 "select ?url",
-                                 "where {",
-                                 "    ?file tcga:platform ?platform .",
-                                 "    ?platform rdfs:label \"mda_rppa_core\" .",
-                                 "    ?file tcga:disease-study ?diseaseStudy .",
-                                 "    ?diseaseStudy rdfs:label \"gbm\" .",
-                                 "    ?file rdfs:label ?name .",
-                                 "    ?file tcga:url ?url .",
-                                 "    filter strEnds(?name, \".tif\")",
-                                 "}"].join("\n");
-
-                        TCGA.hub.query(query, function (err, sparqlResult) {
-
-                            var links;
-
-                         // Normalize query result set.
-                            sparqlResult = sparqlResult.map(function (literal) {
-                                return literal[0].substring(1, literal[0].length - 1);
+                         // Calculate the basic statistics for each protein.
+                            medians = {};
+                            means = {};
+                            standardDeviations = {};
+                            proteinLabels.map(function (protein) {
+                                medians[protein] = spearson.median(proteins[protein]);
+                                means[protein] = spearson.mean(proteins[protein]);
+                                standardDeviations[protein] = spearson.standardDeviation(proteins[protein]);
                             });
 
-                            links = {};
-                            proteinLabels.map(function (protein) {
-                                sparqlResult.map(function (link) {
-                                    if (link.indexOf(protein) !== -1) {
-                                        links[protein] = link;
-                                    }
+                         // Make data available to other modules.
+                            TCGA.data["rppa-proteins-medians"] = medians;
+                            TCGA.data["rppa-proteins-means"] = means;
+                            TCGA.data["rppa-proteins-standard-deviations"] = standardDeviations;
+
+                            query = ["prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
+                                     "prefix tcga:<http://purl.org/tcga/core#>",
+                                     "select ?url",
+                                     "where {",
+                                     "    ?file tcga:platform ?platform .",
+                                     "    ?platform rdfs:label \"mda_rppa_core\" .",
+                                     "    ?file tcga:disease-study ?diseaseStudy .",
+                                     "    ?diseaseStudy rdfs:label \"gbm\" .",
+                                     "    ?file rdfs:label ?name .",
+                                     "    ?file tcga:url ?url .",
+                                     "    filter strEnds(?name, \".tif\")",
+                                     "}"].join("\n");
+
+                            TCGA.hub.query(query, function (err, sparqlResult) {
+
+                                var links;
+
+                             // Normalize query result set.
+                                sparqlResult = sparqlResult.map(function (literal) {
+                                    return literal[0].substring(1, literal[0].length - 1);
                                 });
+
+                                links = {};
+                                proteinLabels.map(function (protein) {
+                                    sparqlResult.map(function (link) {
+                                        if (link.indexOf(protein) !== -1) {
+                                            links[protein] = link;
+                                        }
+                                    });
+                                });
+
+                             // Copy values into sortable table.
+                                proteinLabels.map(function (protein) {
+                                    $("table tbody", el).append("<tr><td>" + protein + "</td><td>" + medians[protein] + "</td><td>" + means[protein] + "</td><td>" + standardDeviations[protein] + "</td><td><a href=\"" + links[protein] + "\">Slide</a></td></tr>");
+                                });
+                                $("table", el).tablesorter().show();
+
+                             // Rendering is done.
+                                $(el).addClass("rendered");
+
                             });
 
-                         // Copy values into sortable table.
-                            proteinLabels.map(function (protein) {
-                                $("table tbody", ev.target).append("<tr><td>" + protein + "</td><td>" + medians[protein] + "</td><td>" + means[protein] + "</td><td>" + standardDeviations[protein] + "</td><td><a href=\"" + links[protein] + "\">Slide</a></td></tr>");
-                            });
-                            $("table", ev.target).tablesorter().show();
+                        }
 
-                         // Rendering is done.
-                            $(ev.target).addClass("rendered");
-
-                        });
-
-                    }
+                    }(ev.target));
 
                 });
 
@@ -331,39 +339,43 @@
               **/
                 $("#rppa-proteins-correlations").on("show", function (ev) {
 
-                 // Do not render the same information twice.
-                    if ($(ev.target).hasClass("rendered") === false) {
+                    (function (el) {
 
-                     // Register button click listener.
-                        $("#rppa-proteins-correlations-options form", ev.target).submit(function (ev) {
+                     // Do not render the same information twice.
+                        if ($(el).hasClass("rendered") === false) {
 
-                            var method, correlations, viz;
+                         // Register button click listener.
+                            $("#rppa-proteins-correlations-options form", el).submit(function (ev) {
 
-                            ev.preventDefault();
+                                var method, correlations, viz;
 
-                         // Extract method.
-                            method = $("#rppa-proteins-correlations-options [name='correlation-method']").val();
+                                ev.preventDefault();
 
-                         // Calculate correlation coefficients.
-                            correlations = getProteinCorrelationCoefficients(method);
+                             // Extract method.
+                                method = $("#rppa-proteins-correlations-options [name='correlation-method']").val();
 
-                         // Initialize heatmap.
-                            viz = heatmap().width(908).height(908);
+                             // Calculate correlation coefficients.
+                                correlations = getProteinCorrelationCoefficients(method);
 
-                         // Generate heatmap.
-                            d3.select("#rppa-proteins-correlations-heatmap")
-                              .datum(correlations)
-                              .call(viz);
+                             // Initialize heatmap.
+                                viz = heatmap().width(908).height(908);
 
-                        });
+                             // Generate heatmap.
+                                d3.select("#rppa-proteins-correlations-heatmap")
+                                  .datum(correlations)
+                                  .call(viz);
 
-                     // Fire button click event.
-                        $("#rppa-proteins-correlations-options form", ev.target).submit();
+                            });
 
-                     // Rendering is done.
-                        $(ev.target).addClass("rendered");
+                         // Fire button click event.
+                            $("#rppa-proteins-correlations-options form", el).submit();
 
-                    }
+                         // Rendering is done.
+                            $(el).addClass("rendered");
+
+                        }
+
+                    }(ev.target));
 
                 });
 
@@ -372,56 +384,60 @@
               **/
                 $("#rppa-proteins-clusters").on("show", function (ev) {
 
-                 // Do not render the same information twice.
-                    if ($(ev.target).hasClass("rendered") === false) {
+                    (function (el) {
 
-                     // Register button click listener.
-                        $("#rppa-proteins-clusters-options form", ev.target).submit(function (ev) {
+                     // Do not render the same information twice.
+                        if ($(el).hasClass("rendered") === false) {
 
-                            var correlations, pairwiseDistances, labels, linkage, clusters, viz;
+                         // Register button click listener.
+                            $("#rppa-proteins-clusters-options form", el).submit(function (ev) {
 
-                            ev.preventDefault();
+                                var correlations, pairwiseDistances, labels, linkage, clusters, viz;
 
-                            correlations = getProteinCorrelationCoefficients("pearson");
+                                ev.preventDefault();
 
-                         // Calculate the pairwise distances.
-                            pairwiseDistances = Object.keys(correlations).map(function (proteinA) {
-                                return Object.keys(correlations[proteinA]).map(function (proteinB) {
-                                 // The direction of the correlation coefficient is of no value,
-                                 // it is only the magnitude that matters.
-                                    return 1 - Math.abs(correlations[proteinA][proteinB]);
+                                correlations = getProteinCorrelationCoefficients("pearson");
+
+                             // Calculate the pairwise distances.
+                                pairwiseDistances = Object.keys(correlations).map(function (proteinA) {
+                                    return Object.keys(correlations[proteinA]).map(function (proteinB) {
+                                     // The direction of the correlation coefficient is of no value,
+                                     // it is only the magnitude that matters.
+                                        return 1 - Math.abs(correlations[proteinA][proteinB]);
+                                    });
                                 });
+
+                             // Extract labels.
+                                labels = Object.keys(correlations);
+
+                             // Extract linkage criterion.
+                                linkage = $("#rppa-proteins-clusters-options [name='linkage-criterion']").val();
+
+                             // Run the clustering.
+                                clusters = spearson.hierarchicalClustering(pairwiseDistances, linkage);
+
+                             // Make data available to other modules.
+                                TCGA.data["rppa-proteins-clusters"] = clusters;
+
+                             // Intialize dendrogram.
+                                viz = dendrogram().width(908).height(4000).labels(labels);
+
+                             // Generate dendrogram.
+                                d3.select("#rppa-proteins-clusters-dendrogram")
+                                  .datum(clusters)
+                                  .call(viz);
+
                             });
 
-                         // Extract labels.
-                            labels = Object.keys(correlations);
+                         // Fire button click event.
+                            $("#rppa-proteins-clusters-options form", el).submit();
 
-                         // Extract linkage criterion.
-                            linkage = $("#rppa-proteins-clusters-options [name='linkage-criterion']").val();
+                         // Rendering is done.
+                            $(el).addClass("rendered");
 
-                         // Run the clustering.
-                            clusters = spearson.hierarchicalClustering(pairwiseDistances, linkage);
+                        }
 
-                         // Make data available to other modules.
-                            TCGA.data["rppa-proteins-clusters"] = clusters;
-
-                         // Intialize dendrogram.
-                            viz = dendrogram().width(908).height(4000).labels(labels);
-
-                         // Generate dendrogram.
-                            d3.select("#rppa-proteins-clusters-dendrogram")
-                              .datum(clusters)
-                              .call(viz);
-
-                        });
-
-                     // Fire button click event.
-                        $("#rppa-proteins-clusters-options form", ev.target).submit();
-
-                     // Rendering is done.
-                        $(ev.target).addClass("rendered");
-
-                    }
+                    }(ev.target));
 
                 });
 
