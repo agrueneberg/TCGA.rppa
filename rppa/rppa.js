@@ -264,7 +264,7 @@
 
                     (function (el) {
 
-                    var proteins, proteinLabels, medians, means, standardDeviations, query;
+                        var proteins, proteinLabels, medians, means, standardDeviations, query;
 
                      // Do not render the same information twice.
                         if ($(el).hasClass("rendered") === false) {
@@ -288,6 +288,7 @@
                             TCGA.data["rppa-proteins-means"] = JSON.parse(JSON.stringify(means));
                             TCGA.data["rppa-proteins-standard-deviations"] = JSON.parse(JSON.stringify(standardDeviations));
 
+                         // Get links to images.
                             query = ["prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
                                      "prefix tcga:<http://purl.org/tcga/core#>",
                                      "select ?url",
