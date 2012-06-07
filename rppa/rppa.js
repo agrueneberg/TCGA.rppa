@@ -22,8 +22,7 @@
         $("#rppa-progress-bar p").html("Querying hub...");
         $("#rppa-progress-bar .progress div").css("width", "1%");
 
-        query = ["prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
-                 "prefix tcga:<http://purl.org/tcga/core#>",
+        query = ["prefix tcga:<http://purl.org/tcga/core#>",
                  "select ?url",
                  "where {",
                  "    ?file tcga:platform ?platform .",
@@ -39,17 +38,18 @@
                  "    }",
                  "}"].join("\n");
 
-        TCGA.hub.query(query, function (err, links) {
+        TCGA.hub.query(query, function (err, sparqlResult) {
 
-            var filesDownloaded, data, queue;
+            var links, filesDownloaded, data, queue;
 
          // Initialize progress bar.
             filesDownloaded = 0;
             $("#rppa-progress-bar p").html("Downloading files...");
 
-         // Normalize query result set.
-            links = links.map(function (link) {
-                return link[0].substring(1, link[0].length - 1);
+         // Extract links.
+            links = [];
+            sparqlResult.results.bindings.forEach(function (link) {
+                links.push(link.url.value);
             });
 
          // Collect the data in the following denormalized form:
@@ -289,8 +289,7 @@
                             TCGA.data["rppa-proteins-standard-deviations"] = JSON.parse(JSON.stringify(standardDeviations));
 
                          // Get links to images.
-                            query = ["prefix rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
-                                     "prefix tcga:<http://purl.org/tcga/core#>",
+                            query = ["prefix tcga:<http://purl.org/tcga/core#>",
                                      "select ?url",
                                      "where {",
                                      "    ?file tcga:platform ?platform .",
@@ -306,16 +305,11 @@
 
                                 var links;
 
-                             // Normalize query result set.
-                                sparqlResult = sparqlResult.map(function (literal) {
-                                    return literal[0].substring(1, literal[0].length - 1);
-                                });
-
                                 links = {};
                                 proteinLabels.map(function (protein) {
-                                    sparqlResult.map(function (link) {
-                                        if (link.indexOf(protein) !== -1) {
-                                            links[protein] = link;
+                                    sparqlResult.results.bindings.map(function (link) {
+                                        if (link.url.value.indexOf(protein) !== -1) {
+                                            links[protein] = link.url.value;
                                         }
                                     });
                                 });
