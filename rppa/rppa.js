@@ -2,12 +2,15 @@
     "use strict";
 
  // Load dependencies.
-    TCGA.loadScript(["https://raw.github.com/caolan/async/master/dist/async.min.js",
-                     "https://raw.github.com/Mottie/tablesorter/master/js/jquery.tablesorter.min.js",
-                     "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
-                     "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
-                     "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js",
-                     "https://raw.github.com/agrueneberg/Viz/master/dendrogram/dendrogram.js"], function () {
+    TCGA.loadScript({
+        registerModules: false,
+        scripts: ["https://raw.github.com/caolan/async/master/dist/async.min.js",
+                  "https://raw.github.com/Mottie/tablesorter/master/js/jquery.tablesorter.min.js",
+                  "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
+                  "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
+                  "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js",
+                  "https://raw.github.com/agrueneberg/Viz/master/dendrogram/dendrogram.js"]
+    }, function () {
 
         var query;
 
