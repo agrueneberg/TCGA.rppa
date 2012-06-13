@@ -106,7 +106,7 @@
                 queue.push(link, function () {
 
                  // Add file to list of samples.
-                    $("#rppa-samples ul").append("<li><a href=" + link + ">" + link.substring(178, link.length) + "</a></li>");
+                    $("#rppa-samples ul").append("<li><a href=" + link + " target=\"_blank\">" + link.substring(178, link.length) + "</a></li>");
 
                  // Change progress bar.
                     filesDownloaded++;
@@ -319,7 +319,7 @@
 
                              // Copy values into sortable table.
                                 proteinLabels.map(function (protein) {
-                                    $("table tbody", el).append("<tr><td>" + protein + "</td><td>" + medians[protein] + "</td><td>" + means[protein] + "</td><td>" + standardDeviations[protein] + "</td><td><a href=\"" + links[protein] + "\">Slide</a></td></tr>");
+                                    $("table tbody", el).append("<tr><td>" + protein + "</td><td>" + medians[protein] + "</td><td>" + means[protein] + "</td><td>" + standardDeviations[protein] + "</td><td><a href=\"" + links[protein] + "\" target=\"_blank\">Slide</a></td></tr>");
                                 });
                                 $("table", el).tablesorter().show();
 
