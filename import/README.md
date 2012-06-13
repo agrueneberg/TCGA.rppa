@@ -1,4 +1,4 @@
-RPPA
-====
+Import
+======
 
-Real time querying and plotting of level 3 reverse phase protein data for GBM.
+Import your files and compare them to the reference data in TCGA.
