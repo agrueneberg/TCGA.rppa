@@ -291,7 +291,16 @@
                             TCGA.data["rppa-proteins-means"] = JSON.parse(JSON.stringify(means));
                             TCGA.data["rppa-proteins-standard-deviations"] = JSON.parse(JSON.stringify(standardDeviations));
 
-                         // Get links to images.
+                         // Copy values into sortable table.
+                            proteinLabels.map(function (protein) {
+                                $("table tbody", el).append("<tr data-protein=\"" + protein + "\"><td>" + protein + "</td><td>" + medians[protein] + "</td><td>" + means[protein] + "</td><td>" + standardDeviations[protein] + "</td><td></td></tr>");
+                            });
+                            $("table", el).tablesorter().show();
+
+                         // Rendering is done.
+                            $(el).addClass("rendered");
+
+                         // Offer links to slides.
                             query = ["prefix tcga:<http://purl.org/tcga/core#>",
                                      "select ?url",
                                      "where {",
@@ -305,27 +314,13 @@
                                      "}"].join("\n");
 
                             TCGA.hub.query(query, function (err, sparqlResult) {
-
-                                var links;
-
-                                links = {};
                                 proteinLabels.map(function (protein) {
                                     sparqlResult.results.bindings.map(function (link) {
                                         if (link.url.value.indexOf(protein) !== -1) {
-                                            links[protein] = link.url.value;
+                                            $("table tbody tr[data-protein='" + protein + "'] td:eq(4)", el).append("<a href=\"" + link.url.value + "\" target=\"_blank\">Slide</a>");
                                         }
                                     });
                                 });
-
-                             // Copy values into sortable table.
-                                proteinLabels.map(function (protein) {
-                                    $("table tbody", el).append("<tr><td>" + protein + "</td><td>" + medians[protein] + "</td><td>" + means[protein] + "</td><td>" + standardDeviations[protein] + "</td><td><a href=\"" + links[protein] + "\" target=\"_blank\">Slide</a></td></tr>");
-                                });
-                                $("table", el).tablesorter().show();
-
-                             // Rendering is done.
-                                $(el).addClass("rendered");
-
                             });
 
                         }
