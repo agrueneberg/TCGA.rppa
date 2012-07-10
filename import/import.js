@@ -2,7 +2,7 @@
     "use strict";
 
  // Register tab.
-    TCGA.registerTab({
+    TCGA.ui.registerTab({
         id: "import",
         title: "Import",
         content: "<div class=\"page-header\"><h1>Import <small>Import your files and compare them to the reference data in TCGA.</small></h1></div><p><span class=\"label label-important\">Important</span> <strong>This module will not upload your files to the cloud. Everything stays on your machine.</strong></p><p>The imported files will be locally stored in <code>TCGA.data</code>.</p><h2>File Picker</h2><form id=\"import-file-picker\"><input name=\"files\" type=\"file\" multiple=\"multiple\" /><br /><input type=\"submit\" class=\"btn btn-mini\" value=\"Import files\" /></form>",
@@ -19,7 +19,7 @@
                 reader = new FileReader();
                 reader.onload = function (ev) {
                     TCGA.data[file.name] = ev.target.result;
-                    TCGA.toast.info("Imported file " + file.name + " into TCGA.data.");
+                    TCGA.ui.toast.info("Imported file " + file.name + " into TCGA.data.");
                 };
                 reader.readAsText(file);
             });

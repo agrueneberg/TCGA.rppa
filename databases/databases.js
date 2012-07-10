@@ -24,7 +24,7 @@
             }, function () {
 
              // Register tab.
-                TCGA.registerTab({
+                TCGA.ui.registerTab({
                     id: "databases",
                     title: "Databases",
                     content: "<div class=\"page-header\"><h1>Databases <small>Activate third-party databases for use with the TCGA Toolbox.</small></h1></div><p><span class=\"label label-info\">Info</span> This module allows you to activate or deactivate communication with databases other than TCGA. However, it will not add an API to those databases.</p><h2>UniProt</h2><p>UniProt is a comprehensive resource for protein sequence and annotation data.</p><button class=\"databases-toggle\" data-database-name=\"UniProt\" data-database-url=\"http://beta.sparql.uniprot.org/*\" class=\"btn\"></button>",
