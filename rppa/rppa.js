@@ -5,7 +5,6 @@
     TCGA.loadScript({
         registerModules: false,
         scripts: ["https://raw.github.com/caolan/async/master/dist/async.min.js",
-                  "https://raw.github.com/Mottie/tablesorter/master/js/jquery.tablesorter.min.js",
                   "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
                   "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
                   "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js",
@@ -295,7 +294,7 @@
                             proteinLabels.map(function (protein) {
                                 $("table tbody", el).append("<tr data-protein=\"" + protein + "\"><td>" + protein + "</td><td>" + medians[protein] + "</td><td>" + means[protein] + "</td><td>" + standardDeviations[protein] + "</td><td></td></tr>");
                             });
-                            $("table", el).tablesorter().show();
+                            $("table", el).show();
 
                          // Rendering is done.
                             $(el).addClass("rendered");
