@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>TCGA.intent</title>
+        <link rel="stylesheet" href="css/bootstrap.css" />
+        <link rel="stylesheet" href="css/main.css" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="page-header">
+                <h1>TCGA.intent</h1>
+            </div>
+            <div id="about">
+                <p>TCGA.intent is a <a href="http://webintents.org" target="_blank">Web Intent</a> service.</p>
+                <h2>Supported Intents</h2>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>http://mathbiol.org/intents/tcga/download</code></td>
+                            <td><code>text/uri-list</code></td>
+                            <td>Download files from TCGA</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="download-intent" class="intent">
+                <p>TCGA.intent is downloading the files you requested...</p>
+                <div class="progress progress-striped active">
+                    <div class="bar"></div>
+                </div>
+            </div>
+            <hr />
+            <footer>
+                <p>
+                    Alexander Grüneberg<br />
+                    GitHub: <a href="https://github.com/agrueneberg" target="_blank">agrueneberg</a>
+                </p>
+            </footer>
+        </div>
+        <script src="lib/jquery.js"></script>
+        <script src="lib/async.js"></script>
+        <script src="lib/intent.js"></script>
+    </body>
+</html>
