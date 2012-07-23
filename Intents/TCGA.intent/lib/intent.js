@@ -7,8 +7,13 @@
     if (intent) {
         $("#about").hide();
         if (intent.action === "http://mathbiol.org/intents/tcga/download") {
+            targets = [];
             if (intent.type === "text/uri-list" && typeof intent.data === "string") {
-                targets = intent.data.split("\n");
+                intent.data.split("\n").forEach(function (uri) {
+                    if (uri !== "") {
+                        targets.push(uri);
+                    }
+                });
             } else {
                 intent.postFailure("Invalid Intent type.");
             }
