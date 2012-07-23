@@ -6,7 +6,7 @@
     intent = window.webkitIntent;
     if (intent) {
         $("#about").hide();
-        if (intent.action === "http://mathbiol.org/intents/download") {
+        if (intent.action === "http://mathbiol.org/intents/tcga/download") {
             $("#download-intent").show();
             if (intent.type === "text/uri-list") {
                 targets = intent.data;
