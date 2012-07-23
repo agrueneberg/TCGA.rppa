@@ -20,16 +20,22 @@
             $("#download-intent").show();
             filesDownloaded = 0;
             async.map(targets, function (item, callback) {
-                $.get(item, function (data) {
+                $.ajax(item).done(function (data) {
                     filesDownloaded++;
                     $(".progress .bar").css("width", ((filesDownloaded / targets.length) * 100) + "%");
                     callback(null, {
                         body: data,
                         uri: item
                     });
+                }).fail(function (xhr) {
+                    callback("Downloading '" + item + "' failed: " + xhr.status, null);
                 });
             }, function (err, res) {
-                intent.postResult(res);
+                if (err !== null) {
+                    intent.postFailure(err);
+                } else {
+                    intent.postResult(res);
+                }
             });
         }
     }
