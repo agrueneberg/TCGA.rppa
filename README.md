@@ -1,4 +1,4 @@
 TCGA
 ====
 
-Modules for the [TCGA Toolbox](https://chrome.google.com/webstore/detail/ajjkhhldnekpjjfckpkpodgeddndljnl).
+A collection of tools centered around the [TCGA](http://cancergenome.nih.gov/).
