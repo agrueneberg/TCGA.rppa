@@ -2,11 +2,9 @@
     "manifest_version": 2,
     "name": "TCGA.intent",
     "description": "A Web Intent service to download files from the open-access HTTP directory of TCGA.",
-    "version": "0.2.1",
-    "app": {
-        "launch": {
-            "local_path": "main.html"
-        }
+    "version": "0.0.1",
+    "background": {
+        "page": "background.html"
     },
     "permissions": [
         "*://tcga-data.nci.nih.gov/"
@@ -15,11 +13,11 @@
         "http://mathbiol.org/intents/tcga/download": [{
             "type": ["text/uri-list"],
             "title": "Download files from TCGA",
+            "href": "background.html",
             "disposition": "inline"
         }]
     },
     "icons": {
-        "128": "icon_128.png",
         "16": "icon_16.png"
     }
 }

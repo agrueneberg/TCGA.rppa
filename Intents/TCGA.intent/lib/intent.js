@@ -5,7 +5,6 @@
 
     intent = window.webkitIntent;
     if (intent) {
-        $("#about").hide();
         if (intent.action === "http://mathbiol.org/intents/tcga/download") {
             targets = [];
             if (intent.type === "text/uri-list" && typeof intent.data === "string") {
