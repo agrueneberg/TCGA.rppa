@@ -17,6 +17,7 @@
             "disposition": "inline"
         }]
     },
+    "content_security_policy": "default-src 'self'; connect-src https://tcga-data.nci.nih.gov http://tcga-data.nci.nih.gov; style-src 'self' 'unsafe-inline'",
     "icons": {
         "16": "icon_16.png"
     }
