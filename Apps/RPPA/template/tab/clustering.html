@@ -1,0 +1,8 @@
+<div ng-controller="tabClustering">
+    <div>
+        Linkage Criterion:
+        <select ng-model="linkageCriterion" ng-options="linkageCriterion.name for linkageCriterion in linkageCriteria">
+        </select>
+    </div>
+    <dendrogram labels="labels" data="clusters" />
+</div>

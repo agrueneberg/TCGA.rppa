@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html ng-app="rppa" ng-csp>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" href="css/main.css" />
+        <link rel="stylesheet" href="css/bootstrap.css" />
+        <title>RPPA Tool</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="page-header">
+                <h1>RPPA <small>Real time querying and plotting of level 3 reverse phase protein array data.</small></h1>
+            </div>
+            <div ng-controller="init">
+                <!--
+                    This app works by nesting controllers together,
+                    no router is being used at the moment.
+                -->
+                <ng-include src="template" />
+            </div>
+            <hr />
+            <footer>
+                <p>
+                    Alexander Grüneberg<br />
+                    GitHub: <a href="https://github.com/agrueneberg" target="_blank">agrueneberg</a>
+                </p>
+            </footer>
+        </div>
+        <script src="lib/jquery.js"></script>
+        <script src="lib/angular.js"></script>
+        <script src="lib/async.js"></script>
+        <script src="lib/spearson.js"></script>
+        <script src="lib/d3.js"></script>
+        <script src="lib/heatmap.js"></script>
+        <script src="lib/dendrogram.js"></script>
+        <script src="lib/viz.js"></script>
+        <script src="lib/app.js"></script>
+    </body>
+</html>

@@ -1,0 +1,22 @@
+<div ng-controller="tabStats">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Protein</th>
+                <th>Median</th>
+                <th>Mean</th>
+                <th>Standard deviation</th>
+                <th>Slide</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="observation in observations">
+                <td>{{observation.protein}}</td>
+                <td>{{observation.median}}</td>
+                <td>{{observation.mean}}</td>
+                <td>{{observation.standardDeviation | number}}</td>
+                <td><a href="{{observation.slide}}">Slide</a></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

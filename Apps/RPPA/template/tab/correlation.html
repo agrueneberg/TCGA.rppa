@@ -1,0 +1,8 @@
+<div ng-controller="tabCorrelation">
+    <div>
+        Method:
+        <select ng-model="method" ng-options="method.name for method in methods">
+        </select>
+    </div>
+    <heatmap data="correlationCoefficients" />
+</div>

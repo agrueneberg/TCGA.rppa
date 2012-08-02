@@ -1,0 +1,20 @@
+<div ng-controller="tabSamples">
+    <h2>Files</h2>
+    <a ng-click="selectAll()">Select All</a>
+    <a ng-click="selectNone()">Select None</a>
+    <div class="accordion">
+        <div ng-repeat="file in files" class="accordion-group">
+            <div class="accordion-heading">
+                <div class="accordion-toggle">
+                    <input ng-model="file.selected" type="checkbox" />
+                    <a ng-click="toggle(file)" class="break-word">{{file.uri}}</a>
+                </div>
+            </div>
+            <div ng-class="{in:file.expanded}" class="accordion-body collapse">
+                <div class="accordion-inner">
+                    <pre>{{file.body}}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
