@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "RPPA",
-    "description": "Real time querying and plotting of level 3 reverse phase protein array data.",
+    "description": "Real time querying and plotting of level 3 reverse phase protein array data from TCGA.",
     "version": "0.1.0",
     "app": {
         "launch": {
