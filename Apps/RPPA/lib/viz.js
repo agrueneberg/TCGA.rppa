@@ -28,7 +28,6 @@ viz.directive("dendrogram", function ($window) {
         },
         link: function (scope, element, attrs) {
             var viz;
-            console.log(scope.labels, scope.data);
             viz = $window.dendrogram().width(940).height(4000);
             scope.$watch("data", function () {
                 viz.labels(scope.labels);

@@ -32,9 +32,6 @@
                 nodes = clusterLayout.nodes(data[0]);
                 links = clusterLayout.links(nodes);
 
-                console.log("Nodes", nodes);
-                console.log("Links", links);
-
              // Generate canvas.
                 svg = d3.select(this)
                         .selectAll("svg")
