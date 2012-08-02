@@ -1,3 +1,9 @@
+.button-bar {
+    padding-bottom: 8px;
+}
+.break-word {
+    word-wrap: break-word;
+}
 .tooltip {
     display: none;
     position: absolute;
@@ -18,7 +24,4 @@
     fill: none;
     stroke: #ccc;
     stroke-width: 1.5px;
-}
-.break-word {
-    word-wrap: break-word;
 }

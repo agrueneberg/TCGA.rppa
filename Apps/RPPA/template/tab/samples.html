@@ -1,6 +1,8 @@
 <div ng-controller="tabSamples">
-    <a ng-click="selectAll()">Select All</a>
-    <a ng-click="selectNone()">Select None</a>
+    <div class="button-bar">
+        <button ng-click="selectAll()" class="btn">Select All</button>
+        <button ng-click="selectNone()" class="btn">Select None</button>
+    </div>
     <div class="accordion">
         <div ng-repeat="file in files" class="accordion-group">
             <div class="accordion-heading">
