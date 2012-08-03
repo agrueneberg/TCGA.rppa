@@ -304,7 +304,7 @@ RPPA.controller("tab", function ($scope, store, rppa) {
     });
 });
 
-RPPA.controller("tabSamples", function ($scope) {
+RPPA.controller("tabSamples", function ($scope, store) {
     $scope.selectAll = function () {
         $scope.files = $scope.files.map(function (file) {
             file.selected = true;
@@ -316,6 +316,11 @@ RPPA.controller("tabSamples", function ($scope) {
             file.selected = false;
             return file;
         });
+    };
+    $scope.redownloadSamples = function () {
+        store.remove("rppa-files");
+        store.remove("rppa-slide-links");
+        $scope.$emit("updateTemplate", "template/finder.html");
     };
     $scope.toggle = function (file) {
         file.expanded = !file.expanded;
