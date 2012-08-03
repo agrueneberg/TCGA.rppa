@@ -143,9 +143,11 @@ RPPA.factory("allegro", function ($window) {
                 protein = observation[2];
                 expression = observation[3];
                 if (proteins.hasOwnProperty(protein) === false) {
-                    proteins[protein] = [];
+                    proteins[protein] = {
+                        levels: []
+                    };
                 }
-                proteins[protein].push(expression);
+                proteins[protein].levels.push(expression);
             });
             return proteins;
         },
@@ -157,13 +159,13 @@ RPPA.factory("allegro", function ($window) {
              // Standardize expression values.
                 standardizedProteins = {};
                 proteinLabels.map(function (protein) {
-                    standardizedProteins[protein] = $window.spearson.standardize(proteins[protein]);
+                    standardizedProteins[protein] = $window.spearson.standardize(proteins[protein].levels);
                 });
             } else if (method === "spearman") {
              // Rank expression values.
                 standardizedProteins = {};
                 proteinLabels.map(function (protein) {
-                    standardizedProteins[protein] = $window.spearson.rank(proteins[protein]);
+                    standardizedProteins[protein] = $window.spearson.rank(proteins[protein].levels);
                 });
             }
          // Calculate the correlation coefficients of all protein expression levels.
@@ -260,6 +262,10 @@ RPPA.controller("tab", function ($scope, store, rppa) {
         name: "Samples",
         template: "template/tab/samples.html"
     }, {
+        id: "proteins",
+        name: "Proteins",
+        template: "template/tab/proteins.html"
+    }, {
         id: "stats",
         name: "Stats",
         template: "template/tab/stats.html"
@@ -293,7 +299,13 @@ RPPA.controller("tab", function ($scope, store, rppa) {
         $scope.data = rppa.normalizeFiles(filteredFiles);
     }, true);
     $scope.$watch("data", function () {
-        $scope.proteins = rppa.groupByProteins($scope.data);
+        var proteins;
+        proteins = rppa.groupByProteins($scope.data);
+        Object.keys(proteins).map(function (name) {
+         // Pre-select all proteins.
+            proteins[name].selected = true;
+        });
+        $scope.proteins = proteins;
     });
 });
 
@@ -315,16 +327,32 @@ RPPA.controller("tabSamples", function ($scope) {
     };
 });
 
+RPPA.controller("tabProteins", function ($scope) {
+    $scope.selectAll = function () {
+        Object.keys($scope.proteins).map(function (name) {
+            $scope.proteins[name].selected = true;
+        });
+    };
+    $scope.selectNone = function () {
+        Object.keys($scope.proteins).map(function (name) {
+            $scope.proteins[name].selected = false;
+        });
+    };
+});
+
 RPPA.controller("tabStats", function ($scope, $window, store) {
     $scope.$watch("proteins", function () {
         var slides, proteinLabels, medians, means, standardDeviations;
         slides = store.get("rppa-slide-links");
-        $scope.observations = Object.keys($scope.proteins).map(function (protein) {
+        proteinLabels = Object.keys($scope.proteins).filter(function (protein) {
+            return $scope.proteins[protein].selected;
+        });
+        $scope.observations = proteinLabels.map(function (protein) {
             return {
                 protein: protein,
-                median: $window.spearson.median($scope.proteins[protein]),
-                mean: $window.spearson.mean($scope.proteins[protein]),
-                standardDeviation: $window.spearson.standardDeviation($scope.proteins[protein]),
+                median: $window.spearson.median($scope.proteins[protein].levels),
+                mean: $window.spearson.mean($scope.proteins[protein].levels),
+                standardDeviation: $window.spearson.standardDeviation($scope.proteins[protein].levels),
                 slide: slides.filter(function (slide) {
                     return slide.indexOf(protein) !== -1;
                 })[0]
@@ -343,7 +371,14 @@ RPPA.controller("tabCorrelation", function ($scope, rppa) {
     }];
     $scope.method = $scope.methods[0];
     $scope.$watch("method", function () {
-        $scope.correlationCoefficients = rppa.calculateCorrelationCoefficients($scope.proteins, $scope.method.method);
+        var proteins;
+        proteins = {};
+        Object.keys($scope.proteins).filter(function (protein) {
+            return $scope.proteins[protein].selected;
+        }).map(function (protein) {
+            proteins[protein] = $scope.proteins[protein];
+        });
+        $scope.correlationCoefficients = rppa.calculateCorrelationCoefficients(proteins, $scope.method.method);
     });
 });
 
@@ -360,8 +395,14 @@ RPPA.controller("tabClustering", function ($scope, rppa) {
     }];
     $scope.linkageCriterion = $scope.linkageCriteria[2];
     $scope.$watch("linkageCriterion", function () {
-        var correlationCoefficients, pairwiseDistances;
-        correlationCoefficients = rppa.calculateCorrelationCoefficients($scope.proteins, "pearson");
+        var proteins, correlationCoefficients, pairwiseDistances;
+        proteins = {};
+        Object.keys($scope.proteins).filter(function (protein) {
+            return $scope.proteins[protein].selected;
+        }).map(function (protein) {
+            proteins[protein] = $scope.proteins[protein];
+        });
+        correlationCoefficients = rppa.calculateCorrelationCoefficients(proteins, "pearson");
      // Calculate the pairwise distances.
         pairwiseDistances = Object.keys(correlationCoefficients).map(function (proteinA) {
             return Object.keys(correlationCoefficients[proteinA]).map(function (proteinB) {

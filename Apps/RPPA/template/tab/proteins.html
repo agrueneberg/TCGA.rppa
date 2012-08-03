@@ -1,0 +1,16 @@
+<div ng-controller="tabProteins">
+    <div class="button-bar">
+        <button ng-click="selectAll()" class="btn">Select All</button>
+        <button ng-click="selectNone()" class="btn">Select None</button>
+    </div>
+    <div class="accordion">
+        <div ng-repeat="(name, protein) in proteins" class="accordion-group">
+            <div class="accordion-heading">
+                <div class="accordion-toggle">
+                    <input ng-model="protein.selected" type="checkbox" />
+                    <a class="break-word">{{name}}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
