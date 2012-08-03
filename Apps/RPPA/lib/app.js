@@ -258,27 +258,21 @@ RPPA.controller("intent", function ($scope, store) {
 
 RPPA.controller("tab", function ($scope, store, rppa) {
     $scope.tabs = [{
-        id: "sample",
         name: "Samples",
         template: "template/tab/samples.html"
     }, {
-        id: "proteins",
         name: "Proteins",
         template: "template/tab/proteins.html"
     }, {
-        id: "stats",
         name: "Stats",
         template: "template/tab/stats.html"
     }, {
-        id: "correlation",
         name: "Correlation",
         template: "template/tab/correlation.html"
     }, {
-        id: "clustering",
         name: "Clustering",
         template: "template/tab/clustering.html"
     }, {
-        id: "export",
         name: "Export",
         template: "template/tab/export.html"
     }];
