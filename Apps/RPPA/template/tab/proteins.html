@@ -4,11 +4,11 @@
         <button ng-click="selectNone()" class="btn">Select None</button>
     </div>
     <div class="accordion">
-        <div ng-repeat="(name, protein) in proteins" class="accordion-group">
+        <div ng-repeat="protein in proteins" class="accordion-group">
             <div class="accordion-heading">
                 <div class="accordion-toggle">
                     <input ng-model="protein.selected" type="checkbox" />
-                    <a class="break-word">{{name}}</a>
+                    <a class="break-word">{{protein.protein}}</a>
                 </div>
             </div>
         </div>
