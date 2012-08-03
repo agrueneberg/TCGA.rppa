@@ -341,25 +341,23 @@ RPPA.controller("tabProteins", function ($scope) {
 });
 
 RPPA.controller("tabStats", function ($scope, $window, store) {
-    $scope.$watch("proteins", function () {
-        var slides, filteredProteins, medians, means, standardDeviations;
-        slides = store.get("rppa-slide-links");
-     // Filter proteins.
-        filteredProteins = $scope.proteins.filter(function (protein) {
-            return protein.selected;
-        });
-        $scope.observations = filteredProteins.map(function (protein) {
-            return {
-                protein: protein.protein,
-                median: $window.spearson.median(protein.expressionLevels),
-                mean: $window.spearson.mean(protein.expressionLevels),
-                standardDeviation: $window.spearson.standardDeviation(protein.expressionLevels),
-                slide: slides.filter(function (slide) {
-                 // Silly protein names.
-                    return slide.indexOf(protein.protein) !== -1;
-                })[0]
-            };
-        });
+    var slides, filteredProteins, medians, means, standardDeviations;
+    slides = store.get("rppa-slide-links");
+ // Filter proteins.
+    filteredProteins = $scope.proteins.filter(function (protein) {
+        return protein.selected;
+    });
+    $scope.observations = filteredProteins.map(function (protein) {
+        return {
+            protein: protein.protein,
+            median: $window.spearson.median(protein.expressionLevels),
+            mean: $window.spearson.mean(protein.expressionLevels),
+            standardDeviation: $window.spearson.standardDeviation(protein.expressionLevels),
+            slide: slides.filter(function (slide) {
+             // Silly protein names.
+                return slide.indexOf(protein.protein) !== -1;
+            })[0]
+        };
     });
 });
 
