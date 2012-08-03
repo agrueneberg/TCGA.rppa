@@ -41,7 +41,7 @@ RPPA.factory("allegro", function ($window) {
     };
 });
 
-    RPPA.factory("rppa", function ($window, allegro) {
+RPPA.factory("rppa", function ($window, allegro) {
     return {
         getFileLinks: function (callback) {
             var query;
