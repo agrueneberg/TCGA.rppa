@@ -245,6 +245,11 @@ RPPA.controller("intent", function ($scope, store) {
         });
      // Start Intent.
         window.navigator.webkitStartActivity(intent, function (files) {
+         // Extract sample ID.
+            files = files.map(function (file) {
+                file.sample = file.uri.match(/Level_3\.([-_a-zA-Z0-9]+)\.txt$/)[1];
+                return file;
+            });
          // Remove links from store.
             store.remove("rppa-file-links");
          // Store files in store.
