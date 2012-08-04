@@ -9,7 +9,12 @@
             <div class="accordion-heading">
                 <div class="accordion-toggle">
                     <input ng-model="protein.selected" type="checkbox" />
-                    <a class="break-word">{{protein.protein}}</a>
+                    <a ng-click="toggle(protein)">{{protein.protein}}</a>
+                </div>
+            </div>
+            <div ng-class="{in:protein.expanded}" class="accordion-body collapse">
+                <div class="accordion-inner">
+                    <pre>{{stringify(protein)}}</pre>
                 </div>
             </div>
         </div>

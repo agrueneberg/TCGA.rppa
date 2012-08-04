@@ -145,7 +145,10 @@ RPPA.factory("rppa", function ($window, allegro) {
                 if (groups.hasOwnProperty(observation.protein) === false) {
                     groups[observation.protein] = [];
                 }
-                groups[observation.protein].push(observation.expressionLevel);
+                groups[observation.protein].push({
+                    sampleRef: observation.sampleRef,
+                    expressionLevel: observation.expressionLevel
+                });
             });
             return Object.keys(groups).map(function (protein) {
                 return {
@@ -160,12 +163,20 @@ RPPA.factory("rppa", function ($window, allegro) {
             if (method === "pearson") {
              // Standardize expression values.
                 proteins.map(function (protein) {
-                    standardizedProteins[protein.protein] = $window.spearson.standardize(protein.expressionLevels);
+                    var expressionLevels;
+                    expressionLevels = protein.expressionLevels.map(function (expressionLevel) {
+                        return expressionLevel.expressionLevel;
+                    });
+                    standardizedProteins[protein.protein] = $window.spearson.standardize(expressionLevels);
                 });
             } else if (method === "spearman") {
              // Rank expression values.
                 proteins.map(function (protein) {
-                    standardizedProteins[protein.protein] = $window.spearson.rank(protein.expressionLevels);
+                    var expressionLevels;
+                    expressionLevels = protein.expressionLevels.map(function (expressionLevel) {
+                        return expressionLevel.expressionLevel;
+                    });
+                    standardizedProteins[protein.protein] = $window.spearson.rank(expressionLevels);
                 });
             }
          // Extract labels for fast lookup.
@@ -247,7 +258,7 @@ RPPA.controller("intent", function ($scope, store) {
         window.navigator.webkitStartActivity(intent, function (files) {
          // Extract sample ID.
             files = files.map(function (file) {
-                file.sample = file.uri.match(/Level_3\.([-_a-zA-Z0-9]+)\.txt$/)[1];
+                file.sampleRef = file.uri.match(/Level_3\.([-_a-zA-Z0-9]+)\.txt$/)[1];
                 return file;
             });
          // Remove links from store.
@@ -343,6 +354,14 @@ RPPA.controller("tabProteins", function ($scope) {
             $scope.proteins[name].selected = false;
         });
     };
+    $scope.toggle = function (protein) {
+        protein.expanded = !protein.expanded;
+    };
+    $scope.stringify = function (protein) {
+        return protein.expressionLevels.map(function (expressionLevel) {
+            return expressionLevel.expressionLevel + " from sample " + expressionLevel.sampleRef;
+        }).join("\n");
+    };
 });
 
 RPPA.controller("tabStats", function ($scope, $window, store) {
@@ -353,11 +372,15 @@ RPPA.controller("tabStats", function ($scope, $window, store) {
         return protein.selected;
     });
     $scope.observations = filteredProteins.map(function (protein) {
+        var expressionLevels;
+        expressionLevels = protein.expressionLevels.map(function (expressionLevel) {
+            return expressionLevel.expressionLevel;
+        });
         return {
             protein: protein.protein,
-            median: $window.spearson.median(protein.expressionLevels),
-            mean: $window.spearson.mean(protein.expressionLevels),
-            standardDeviation: $window.spearson.standardDeviation(protein.expressionLevels),
+            median: $window.spearson.median(expressionLevels),
+            mean: $window.spearson.mean(expressionLevels),
+            standardDeviation: $window.spearson.standardDeviation(expressionLevels),
             slide: slides.filter(function (slide) {
              // Silly protein names.
                 return slide.indexOf(protein.protein) !== -1;
