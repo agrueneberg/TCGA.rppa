@@ -359,7 +359,7 @@ RPPA.controller("tabProteins", function ($scope) {
     };
     $scope.stringify = function (protein) {
         return protein.expressionLevels.map(function (expressionLevel) {
-            return expressionLevel.expressionLevel + " from sample " + expressionLevel.sampleRef;
+            return expressionLevel.expressionLevel + "\t(sample: " + expressionLevel.sampleRef + ")";
         }).join("\n");
     };
 });
