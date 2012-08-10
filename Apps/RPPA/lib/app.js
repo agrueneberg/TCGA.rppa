@@ -387,6 +387,8 @@ RPPA.controller("tabStats", function ($scope, $window, store) {
             })[0]
         };
     });
+    $scope.sortBy = "protein";
+    $scope.reverseSort = false;
 });
 
 RPPA.controller("tabCorrelation", function ($scope, rppa) {

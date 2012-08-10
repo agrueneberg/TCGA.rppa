@@ -2,15 +2,15 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Protein</th>
-                <th>Median</th>
-                <th>Mean</th>
-                <th>Standard deviation</th>
+                <th ng-click="sortBy='protein'; reverseSort=!reverseSort">Protein</th>
+                <th ng-click="sortBy='median'; reverseSort=!reverseSort">Median</th>
+                <th ng-click="sortBy='mean'; reverseSort=!reverseSort">Mean</th>
+                <th ng-click="sortBy='standardDeviation'; reverseSort=!reverseSort">Standard deviation</th>
                 <th>Slide</th>
             </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="observation in observations">
+            <tr ng-repeat="observation in observations | orderBy:sortBy:reverseSort">
                 <td>{{observation.protein}}</td>
                 <td>{{observation.median}}</td>
                 <td>{{observation.mean}}</td>
