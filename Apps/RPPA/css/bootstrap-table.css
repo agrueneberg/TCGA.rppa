@@ -5,6 +5,7 @@ table.table thead .sort-asc-disabled,
 table.table thead .sort-desc-disabled {
     cursor: pointer;
     *cursor: hand;
+    -webkit-user-select: none;
 }
 
 table.table thead .sort { background: url('../img/sort-both.png') no-repeat center right; }
