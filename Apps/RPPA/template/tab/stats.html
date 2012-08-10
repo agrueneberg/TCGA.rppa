@@ -2,10 +2,10 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th ng-click="sortBy='protein'; reverseSort=!reverseSort">Protein</th>
-                <th ng-click="sortBy='median'; reverseSort=!reverseSort">Median</th>
-                <th ng-click="sortBy='mean'; reverseSort=!reverseSort">Mean</th>
-                <th ng-click="sortBy='standardDeviation'; reverseSort=!reverseSort">Standard deviation</th>
+                <th ng-class="getSortClass('protein')" ng-click="sortBy='protein'; reverseSort=!reverseSort">Protein</th>
+                <th ng-class="getSortClass('median')" ng-click="sortBy='median'; reverseSort=!reverseSort">Median</th>
+                <th ng-class="getSortClass('mean')" ng-click="sortBy='mean'; reverseSort=!reverseSort">Mean</th>
+                <th ng-class="getSortClass('standardDeviation')" ng-click="sortBy='standardDeviation'; reverseSort=!reverseSort">Standard deviation</th>
                 <th>Slide</th>
             </tr>
         </thead>

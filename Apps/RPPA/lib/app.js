@@ -389,6 +389,17 @@ RPPA.controller("tabStats", function ($scope, $window, store) {
     });
     $scope.sortBy = "protein";
     $scope.reverseSort = false;
+    $scope.getSortClass = function (column) {
+        if (column === $scope.sortBy) {
+            if ($scope.reverseSort === false) {
+                return "sort-desc";
+            } else {
+                return "sort-asc";
+            }
+        } else {
+            return "sort";
+        }
+    };
 });
 
 RPPA.controller("tabCorrelation", function ($scope, rppa) {
