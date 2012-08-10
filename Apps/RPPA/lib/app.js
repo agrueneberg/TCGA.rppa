@@ -387,10 +387,18 @@ RPPA.controller("tabStats", function ($scope, $window, store) {
             })[0]
         };
     });
-    $scope.sortBy = "protein";
+    $scope.sortColumn = "protein";
     $scope.reverseSort = false;
+    $scope.changeSortColumn = function (column) {
+        if (column !== $scope.sortColumn) {
+            $scope.reverseSort = false;
+        } else {
+            $scope.reverseSort = !$scope.reverseSort;
+        }
+        $scope.sortColumn = column;
+    };
     $scope.getSortClass = function (column) {
-        if (column === $scope.sortBy) {
+        if (column === $scope.sortColumn) {
             if ($scope.reverseSort === false) {
                 return "sort-desc";
             } else {
