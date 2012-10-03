@@ -238,10 +238,15 @@
 
                             textarea = $("textarea", el);
 
-                         // Copy data into textarea.
+                         // Stringify data.
                             data = data.map(function (observation) {
                                 return observation.join("\t");
                             }).join("\n");
+
+                         // Prepend header.
+                            data = "sample_ref\tcomposite_element_ref\tprotein\tprotein_expression\tgroup\n" + data;
+
+                         // Copy data into textarea.
                             textarea.text(data);
 
                          // Enable copy to clipboard feature.
