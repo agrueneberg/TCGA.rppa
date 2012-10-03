@@ -34,10 +34,6 @@
                  "    ?file rdfs:label ?name .",
                  "    ?file tcga:url ?url .",
                  "    filter contains(?name, \"Level_3\")",
-                 "    minus {",
-                 "        ?file rdfs:label ?name .",
-                 "        filter contains(?name, \"Control\")",
-                 "    }",
                  "}"].join("\n");
 
         TCGA.find(query, function (err, sparqlResult) {
