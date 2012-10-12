@@ -1,4 +1,4 @@
-RPPA
-====
+TCGA.rppa
+=========
 
-Real time analysis of reverse phase protein array data.
+TCGA.rppa is a [TCGA Toolbox](https://chrome.google.com/webstore/detail/tcga-toolbox/ajjkhhldnekpjjfckpkpodgeddndljnl) module to analyze reverse phase protein array (RPPA) data.
