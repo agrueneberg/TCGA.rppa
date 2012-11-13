@@ -169,6 +169,7 @@
         });
 
         app.controller("main", function ($scope, rppa, store) {
+         // Samples can be inferred from links.
             store.get("links").then(function (links) {
              // Preselect links.
                 links = links.map(function (link) {
