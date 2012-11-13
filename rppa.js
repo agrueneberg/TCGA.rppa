@@ -112,7 +112,9 @@
                     $scope.percentage = 100;
                  // Store each file in the store service.
                     promises = files.map(function (file, idx) {
-                        return store.set(links[idx], file);
+                        var id;
+                        id = rppa.extractSampleId(links[idx]);
+                        return store.set("file:" + id, file);
                     });
                  // Store links in the store service.
                     promises.push(store.set("links", links));
