@@ -93,7 +93,7 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
-            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="file in files"><input type="checkbox" ng-model="file.selected" />&nbsp;<a href="{{file.uri}}" target="_blank">{{file.uri}}</a></li></ul><div>');
+            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="file in files"><input type="checkbox" ng-model="file.selected" />&nbsp;<a href="{{file.uri}}" target="_blank">{{file.id}}</a></li></ul><div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
@@ -126,11 +126,12 @@
             });
         });
 
-        app.controller("main", function ($scope, store) {
+        app.controller("main", function ($scope, rppa, store) {
             store.get("links").then(function (links) {
              // Preselect links.
                 links = links.map(function (link) {
                     return {
+                        id: rppa.extractSampleId(link),
                         uri: link,
                         selected: true
                     };
