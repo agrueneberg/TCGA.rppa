@@ -96,9 +96,25 @@
             });
         });
 
-        app.controller("download", function ($scope, rppa) {
+        app.controller("download", function ($scope, rppa, store) {
             $scope.message = "Querying hub...";
             $scope.percentage = 1;
+            rppa.fetchLinks().then(function (links) {
+                $scope.message = "Downloading files...";
+                rppa.fetchFiles(links).then(function (files) {
+                 // Now that q supports progress notifications, AngularJS will hopefully implement them, too.
+                 // https://github.com/kriskowal/q/issues/63
+                    $scope.percentage = 100;
+                 // Collapse links and files.
+                    files = files.map(function (file, idx) {
+                        return {
+                            uri: links[idx],
+                            body: file
+                        };
+                    });
+                    store.set("files", files);
+                });
+            });
         });
 
         app.directive("progressBar", function ($window) {
