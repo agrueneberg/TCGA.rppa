@@ -11,6 +11,27 @@
 
         app = angular.module("app", []);
 
+     // A simple store service to bridge between controllers.
+        app.factory("store", function ($q) {
+            var store;
+            store = {};
+            return {
+                set: function (key, value) {
+                    var deferred;
+                    deferred = $q.defer();
+                    store[key] = value;
+                    deferred.resolve();
+                    return deferred.promise;
+                },
+                get: function (key) {
+                    var deferred;
+                    deferred = $q.defer();
+                    deferred.resolve(store[key]);
+                    return deferred.promise;
+                }
+            };
+        });
+
         app.factory("rppa", function ($rootScope, $q) {
             var get;
             get = function (link) {
