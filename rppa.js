@@ -90,6 +90,7 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
+            $templateCache.put("main.html", '<div ng-controller="main">{{test}}<div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
@@ -113,8 +114,14 @@
                         };
                     });
                     store.set("files", files);
+                 // Change template.
+                    $scope.$emit("updateTemplate", "main.html");
                 });
             });
+        });
+
+        app.controller("main", function ($scope) {
+            $scope.test = "Hello World!";
         });
 
         app.directive("progressBar", function ($window) {
