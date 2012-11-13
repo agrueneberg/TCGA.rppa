@@ -87,6 +87,39 @@
                 },
                 extractSampleId: function (uri) {
                     return uri.match(/Level_3\.([-_a-zA-Z0-9]+)\.txt$/)[1];
+                },
+                normalizeFile: function (file) {
+                    var deferred, data, expressionLevels, sampleRef, compositeElementRef;
+                    deferred = $q.defer();
+                    data = [];
+                 // Parse file.
+                    expressionLevels = {};
+                    file.split("\n").forEach(function (line, i) {
+                        var tuple, expression;
+                     // Ignore empty lines.
+                        if (line !== "") {
+                            tuple = line.split("\t");
+                            if (tuple[0] === "Sample REF") {
+                             // Extract Sample REF.
+                                sampleRef = tuple[1];
+                            } else if (tuple[0] === "Composite Element REF") {
+                             // Extract Composite Element REF.
+                                compositeElementRef = tuple[1];
+                            } else {
+                             // Extract proteins and their expression levels.
+                                expression = Number(tuple[1]);
+                                expressionLevels[tuple[0]] = expression;
+                            }
+                        }
+                    });
+                 // I have never seen a case where Sample REF and Composite Element REF were not at the top,
+                 // but parsing the whole document before writing them into the table is more robust and might
+                 // prevent potential errors. Unless of course, those values are missing.
+                    Object.keys(expressionLevels).map(function (protein) {
+                        data.push([sampleRef, compositeElementRef, protein, expressionLevels[protein]]);
+                    });
+                    deferred.resolve(data);
+                    return deferred.promise;
                 }
             };
         });
