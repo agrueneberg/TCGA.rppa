@@ -11,6 +11,40 @@
 
         app = angular.module("app", []);
 
+        app.factory("rppa", function ($rootScope, $q) {
+            return {
+                fetchLinks: function () {
+                    var deferred, query;
+                    deferred = $q.defer();
+                    query = ["prefix tcga:<http://purl.org/tcga/core#>",
+                             "select ?url",
+                             "where {",
+                             "    ?file tcga:platform ?platform .",
+                             "    ?platform rdfs:label 'mda_rppa_core' .",
+                             "    ?file tcga:disease-study ?diseaseStudy .",
+                             "    ?diseaseStudy rdfs:label 'gbm' .",
+                             "    ?file rdfs:label ?name .",
+                             "    ?file tcga:url ?url .",
+                             "    filter contains(?name, 'Level_3')",
+                             "    minus {",
+                             "        ?file rdfs:label ?name .",
+                             "        filter contains(?name, 'Control')",
+                             "    }",
+                             "}"].join("\n");
+                    TCGA.find(query, function (err, sparql) {
+                        var links;
+                        links = sparql.results.bindings.map(function (link) {
+                            return link.url.value;
+                        });
+                        $rootScope.$apply(function () {
+                            deferred.resolve(links);
+                        });
+                    });
+                    return deferred.promise;
+                }
+            };
+        });
+
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<progress-bar message="message" percentage="percentage" />');
             $scope.template = "download-data.html";
