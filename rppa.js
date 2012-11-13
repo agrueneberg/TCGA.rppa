@@ -151,6 +151,15 @@
                     });
                  // Store links in the store service.
                     promises.push(store.set("links", links));
+                 // Parse one file to extract a list of antibodies.
+                    promises.push(rppa.normalizeFile(files[0]).then(function (observations) {
+                        var antibodies;
+                        antibodies = observations.map(function (observation) {
+                            return observation[2];
+                        });
+                     // Store antibodies in store service.
+                        return store.set("antibodies", antibodies);
+                    }));
                     $q.all(promises).then(function () {
                      // Change template.
                         $scope.$emit("updateTemplate", "main.html");
