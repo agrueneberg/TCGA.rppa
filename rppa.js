@@ -46,11 +46,16 @@
         });
 
         app.controller("template", function ($scope, $templateCache) {
-            $templateCache.put("download-data.html", '<progress-bar message="message" percentage="percentage" />');
+            $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
             });
+        });
+
+        app.controller("download", function ($scope, rppa) {
+            $scope.message = "Querying hub...";
+            $scope.percentage = 1;
         });
 
         app.directive("progressBar", function ($window) {
