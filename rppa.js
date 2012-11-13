@@ -90,39 +90,40 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
-            $templateCache.put("main.html", '<div ng-controller="main"><ul><li ng-repeat="file in files"><a href="{{file.uri}}" target="_blank">{{file.uri}}</a></li></ul><div>');
+            $templateCache.put("main.html", '<div ng-controller="main"><ul><li ng-repeat="file in files"><a href="{{file}}" target="_blank">{{file}}</a></li></ul><div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
             });
         });
 
-        app.controller("download", function ($scope, rppa, store) {
+        app.controller("download", function ($scope, $q, rppa, store) {
             $scope.message = "Querying hub...";
             $scope.percentage = 1;
             rppa.fetchLinks().then(function (links) {
                 $scope.message = "Downloading files...";
                 rppa.fetchFiles(links).then(function (files) {
+                    var promises;
                  // Now that q supports progress notifications, AngularJS will hopefully implement them, too.
                  // https://github.com/kriskowal/q/issues/63
                     $scope.percentage = 100;
-                 // Collapse links and files.
-                    files = files.map(function (file, idx) {
-                        return {
-                            uri: links[idx],
-                            body: file
-                        };
+                 // Store each file in the store service.
+                    promises = files.map(function (file, idx) {
+                        return store.set(links[idx], file);
                     });
-                    store.set("files", files);
-                 // Change template.
-                    $scope.$emit("updateTemplate", "main.html");
+                 // Store links in the store service.
+                    promises.push(store.set("links", links));
+                    $q.all(promises).then(function () {
+                     // Change template.
+                        $scope.$emit("updateTemplate", "main.html");
+                    });
                 });
             });
         });
 
         app.controller("main", function ($scope, store) {
-            store.get("files").then(function (files) {
-                $scope.files = files;
+            store.get("links").then(function (links) {
+                $scope.files = links;
             });
         });
 
