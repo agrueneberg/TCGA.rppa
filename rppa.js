@@ -84,6 +84,9 @@
                         return get(link);
                     });
                     return $q.all(promises);
+                },
+                extractSampleId: function (uri) {
+                    return uri.match(/Level_3\.([-_a-zA-Z0-9]+)\.txt$/)[1];
                 }
             };
         });
