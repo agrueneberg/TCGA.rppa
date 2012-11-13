@@ -12,11 +12,22 @@
         app = angular.module("app", []);
 
         app.controller("template", function ($scope, $templateCache) {
-            $templateCache.put("test.html", 'Hello World!');
-            $scope.template = "test.html";
+            $templateCache.put("download-data.html", '<progress-bar message="message" percentage="percentage" />');
+            $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
             });
+        });
+
+        app.directive("progressBar", function ($window) {
+            return {
+                restrict: "E",
+                scope: {
+                    message: "=",
+                    percentage: "="
+                },
+                template: '<div class="well"><p>{{message}}</p><div class="progress progress-striped active"><div class="bar" style="width: {{percentage}}%"></div></div></div>'
+            };
         });
 
      // Register tab.
