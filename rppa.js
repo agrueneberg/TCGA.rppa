@@ -12,6 +12,21 @@
         app = angular.module("app", []);
 
         app.factory("rppa", function ($rootScope, $q) {
+            var get;
+            get = function (link) {
+                var deferred;
+                deferred = $q.defer();
+                TCGA.get(link, function (err, res) {
+                    $rootScope.$apply(function () {
+                        if (err !== null) {
+                            deferred.reject(err);
+                        } else {
+                            deferred.resolve(res);
+                        }
+                    });
+                });
+                return deferred.promise;
+            };
             return {
                 fetchLinks: function () {
                     var deferred, query;
@@ -41,6 +56,13 @@
                         });
                     });
                     return deferred.promise;
+                },
+                fetchFiles: function (links) {
+                    var promises;
+                    promises = links.map(function (link) {
+                        return get(link);
+                    });
+                    return $q.all(promises);
                 }
             };
         });
