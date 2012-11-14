@@ -88,10 +88,13 @@
                 extractSampleId: function (uri) {
                     return uri.match(/Level_3\.([-_a-zA-Z0-9]+)\.txt$/)[1];
                 },
-                normalizeFile: function (file) {
+             // Converts the data into the following denormalized form:
+             // Sample_Reference_Id Composite_Element_Ref Antibody Antibody_Expression
+                normalizeFile: function (file, ignoredAntibodies) {
                     var deferred, data, expressionLevels, sampleRef, compositeElementRef;
                     deferred = $q.defer();
                     data = [];
+                    ignoredAntibodies = ignoredAntibodies || [];
                  // Parse file.
                     expressionLevels = {};
                     file.split("\n").forEach(function (line, i) {
@@ -106,17 +109,20 @@
                              // Extract Composite Element REF.
                                 compositeElementRef = tuple[1];
                             } else {
-                             // Extract proteins and their expression levels.
-                                expression = Number(tuple[1]);
-                                expressionLevels[tuple[0]] = expression;
+                             // Ignore given antibodies.
+                                if (ignoredAntibodies.indexOf(tuple[0]) === -1) {
+                                 // Extract antibodies and their expression levels.
+                                    expression = Number(tuple[1]);
+                                    expressionLevels[tuple[0]] = expression;
+                                }
                             }
                         }
                     });
                  // I have never seen a case where Sample REF and Composite Element REF were not at the top,
                  // but parsing the whole document before writing them into the table is more robust and might
                  // prevent potential errors. Unless of course, those values are missing.
-                    Object.keys(expressionLevels).map(function (protein) {
-                        data.push([sampleRef, compositeElementRef, protein, expressionLevels[protein]]);
+                    Object.keys(expressionLevels).map(function (antibody) {
+                        data.push([sampleRef, compositeElementRef, antibody, expressionLevels[antibody]]);
                     });
                     deferred.resolve(data);
                     return deferred.promise;
