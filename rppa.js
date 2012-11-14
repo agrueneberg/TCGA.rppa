@@ -6,7 +6,9 @@
         registerModules: false,
         scripts: [
             "https://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js",
-            "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js"
+            "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
+            "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
+            "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js"
         ]
     }, function () {
 
@@ -135,7 +137,7 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
-            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul><h2>Antibodies</h2><ul><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}}</li></ul><h2>Summary</h2><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td></tr></tbody></table><h2>Export tidied data (for use in R, MATLAB, Google Refine, ...)</h2><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a><div>');
+            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul><h2>Antibodies</h2><ul><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}}</li></ul><h2>Summary</h2><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td></tr></tbody></table><h2>Correlation coeffcients of antibody pairs</h2><heatmap data="correlations" /><h2>Export tidied data (for use in R, MATLAB, Google Refine, ...)</h2><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a><div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
@@ -221,7 +223,7 @@
                     });
                 });
                 $q.all(promises).then(function (data) {
-                    var blob, groupedByAntibody;
+                    var blob, groupedByAntibody, antibodyNames, standardizedAntibodies, correlations, i, j, correlation;
                  // Flatten data.
                     data = data.reduce(function (previous, current) {
                         return previous.concat(current);
@@ -243,8 +245,10 @@
                         }
                         groupedByAntibody[antibody].push(expression);
                     });
+                 // Extract antibody names for fast lookup.
+                    antibodyNames = Object.keys(groupedByAntibody);
                  // Compute summary statistics.
-                    $scope.summary = Object.keys(groupedByAntibody).map(function (antibody) {
+                    $scope.summary = antibodyNames.map(function (antibody) {
                         return {
                             antibody: antibody,
                             median: spearson.median(groupedByAntibody[antibody]),
@@ -252,6 +256,26 @@
                             standardDeviation: spearson.standardDeviation(groupedByAntibody[antibody])
                         };
                     });
+                 // Standardize expression values.
+                    standardizedAntibodies = {};
+                    antibodyNames.map(function (antibody) {
+                        standardizedAntibodies[antibody] = spearson.standardize(groupedByAntibody[antibody]);
+                    });
+                 // Calculate the correlation coefficients of all antibody expression levels.
+                    correlations = {};
+                    for (i = 0; i < antibodyNames.length; i++) {
+                        correlations[antibodyNames[i]] = {};
+                        for (j = 0; j <= i; j++) {
+                            if (i === j) {
+                                correlations[antibodyNames[i]][antibodyNames[j]] = 1;
+                            } else {
+                                correlation = spearson.correlation.pearson(standardizedAntibodies[antibodyNames[i]], standardizedAntibodies[antibodyNames[j]], false);
+                                correlations[antibodyNames[i]][antibodyNames[j]] = correlation;
+                                correlations[antibodyNames[j]][antibodyNames[i]] = correlation;
+                            }
+                        }
+                    }
+                    $scope.correlations = correlations;
                 });
             }, true);
         });
@@ -264,6 +288,24 @@
                     percentage: "="
                 },
                 template: '<div class="well"><p>{{message}}</p><div class="progress progress-striped active"><div class="bar" style="width: {{percentage}}%"></div></div></div>'
+            };
+        });
+
+        app.directive("heatmap", function ($window) {
+            return {
+                restrict: "E",
+                scope: {
+                    data: "="
+                },
+                link: function (scope, element, attrs) {
+                    var viz;
+                    viz = $window.heatmap().width(940).height(940);
+                    scope.$watch("data", function () {
+                        $window.d3.select(element[0])
+                                  .datum(scope.data)
+                                  .call(viz);
+                    });
+                }
             };
         });
 
