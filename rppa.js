@@ -8,7 +8,8 @@
             "https://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js",
             "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
             "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
-            "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js"
+            "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js",
+            "https://raw.github.com/agrueneberg/Viz/master/dendrogram/dendrogram.js"
         ]
     }, function () {
 
@@ -137,7 +138,7 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
-            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul><h2>Antibodies</h2><ul><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}}</li></ul><h2>Summary</h2><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td></tr></tbody></table><h2>Correlation coeffcients of antibody pairs</h2><heatmap data="correlations" /><h2>Export tidied data (for use in R, MATLAB, Google Refine, ...)</h2><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a><div>');
+            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul><h2>Antibodies</h2><ul><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}}</li></ul><h2>Summary</h2><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td></tr></tbody></table><h2>Correlation coeffcients of antibody pairs</h2><heatmap data="correlations" /><h2>Clustering of correlation coefficients</h2><dendrogram labels="clusterLabels" data="clusters" /><h2>Export tidied data (for use in R, MATLAB, Google Refine, ...)</h2><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a><div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
@@ -223,7 +224,7 @@
                     });
                 });
                 $q.all(promises).then(function (data) {
-                    var blob, groupedByAntibody, antibodyNames, standardizedAntibodies, correlations, i, j, correlation;
+                    var blob, groupedByAntibody, antibodyNames, standardizedAntibodies, correlations, i, j, correlation, pairwiseDistances;
                  // Flatten data.
                     data = data.reduce(function (previous, current) {
                         return previous.concat(current);
@@ -276,6 +277,17 @@
                         }
                     }
                     $scope.correlations = correlations;
+                 // Calculate the pairwise distances.
+                    pairwiseDistances = Object.keys(correlations).map(function (proteinA) {
+                        return Object.keys(correlations[proteinA]).map(function (proteinB) {
+                         // The direction of the correlation coefficient is of no value,
+                         // it is only the magnitude that matters.
+                            return 1 - Math.abs(correlations[proteinA][proteinB]);
+                        });
+                    });
+                 // Run the clustering.
+                    $scope.clusters = spearson.hierarchicalClustering(pairwiseDistances, "upgma");
+                    $scope.clusterLabels = antibodyNames;
                 });
             }, true);
         });
@@ -309,11 +321,31 @@
             };
         });
 
+        app.directive("dendrogram", function ($window) {
+            return {
+                restrict: "E",
+                scope: {
+                    labels: "=",
+                    data: "="
+                },
+                link: function (scope, element, attrs) {
+                    var viz;
+                    viz = $window.dendrogram().width(940).height(4000);
+                    scope.$watch("data", function () {
+                        viz.labels(scope.labels);
+                        $window.d3.select(element[0])
+                                  .datum(scope.data)
+                                  .call(viz);
+                    });
+                }
+            };
+        });
+
      // Register tab.
         TCGA.ui.registerTab({
             id: "rppa",
             title: "RPPA",
-            content: '<div class="page-header"><h1>RPPA <small>Real time analysis of reverse phase protein array data.</small></h1></div><div ng-controller="template"><ng-include src="template" /></div>',
+            content: '<style>.tooltip {display: none; position: absolute; padding: 5px; font-size: 13px; opacity: 100; background-color: rgba(242, 242, 242, .8)} .node circle {fill: #fff; stroke: steelblue; stroke-width: 1.5px} .node {font: 10px sans-serif} .link {fill: none; stroke: #ccc; stroke-width: 1.5px}</style><div class="page-header"><h1>RPPA <small>Real time analysis of reverse phase protein array data.</small></h1></div><div ng-controller="template"><ng-include src="template" /></div>',
             switchTab: true
         }, function (err, el) {
             angular.bootstrap(el, ["app"]);
