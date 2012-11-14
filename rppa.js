@@ -135,7 +135,7 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
-            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul><h2>Antibodies</h2><ul><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}}</li></ul><h2>Summary</h2><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td></tr></tbody></table><div>');
+            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul><h2>Antibodies</h2><ul><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}}</li></ul><h2>Summary</h2><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td></tr></tbody></table><h2>Export tidied data (for use in R, MATLAB, Google Refine, ...)</h2><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a><div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
@@ -177,7 +177,7 @@
             });
         });
 
-        app.controller("main", function ($scope, $q, rppa, store) {
+        app.controller("main", function ($scope, $q, $window, rppa, store) {
          // Samples can be inferred from links.
             store.get("links").then(function (links) {
              // Preselect links.
@@ -221,11 +221,17 @@
                     });
                 });
                 $q.all(promises).then(function (data) {
-                    var groupedByAntibody;
+                    var blob, groupedByAntibody;
                  // Flatten data.
                     data = data.reduce(function (previous, current) {
                         return previous.concat(current);
                     });
+                 // Generate blob URI.
+                    blob = new Blob([data.map(function (observation) {
+                        return observation.join("\t");
+                    }).join("\n")]);
+                 // See http://www.html5rocks.com/en/tutorials/workers/basics/#toc-inlineworkers-bloburis
+                    $scope.blobUri = $window.URL.createObjectURL(blob);
                  // Group observations by antibody.
                     groupedByAntibody = {};
                     data.forEach(function (observation) {
