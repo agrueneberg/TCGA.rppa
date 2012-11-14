@@ -4,7 +4,10 @@
  // Load dependencies.
     TCGA.loadScript({
         registerModules: false,
-        scripts: ["https://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"]
+        scripts: [
+            "https://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js",
+            "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js"
+        ]
     }, function () {
 
         var app;
@@ -132,7 +135,7 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
-            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul><h2>Antibodies</h2><ul><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}}</li></ul><div>');
+            $templateCache.put("main.html", '<div ng-controller="main"><h2>Samples</h2><ul><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul><h2>Antibodies</h2><ul><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}}</li></ul><h2>Summary</h2><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td></tr></tbody></table><div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
@@ -174,7 +177,7 @@
             });
         });
 
-        app.controller("main", function ($scope, rppa, store) {
+        app.controller("main", function ($scope, $q, rppa, store) {
          // Samples can be inferred from links.
             store.get("links").then(function (links) {
              // Preselect links.
@@ -197,6 +200,54 @@
                 });
                 $scope.antibodies = antibodies;
             });
+            $scope.$watch(function () {
+                return {
+                    samples: $scope.samples,
+                    antibodies: $scope.antibodies
+                };
+            }, function (combination) {
+                var samples, ignoredAntibodies, promises;
+                samples = combination.samples.filter(function (sample) {
+                    return sample.selected;
+                });
+                ignoredAntibodies = combination.antibodies.filter(function (antibody) {
+                    return !antibody.selected;
+                }).map(function (antibody) {
+                    return antibody.name;
+                });
+                promises = samples.map(function (sample) {
+                    return store.get("file:" + sample.id).then(function (file) {
+                        return rppa.normalizeFile(file, ignoredAntibodies);
+                    });
+                });
+                $q.all(promises).then(function (data) {
+                    var groupedByAntibody;
+                 // Flatten data.
+                    data = data.reduce(function (previous, current) {
+                        return previous.concat(current);
+                    });
+                 // Group observations by antibody.
+                    groupedByAntibody = {};
+                    data.forEach(function (observation) {
+                        var antibody, expression;
+                        antibody = observation[2];
+                        expression = observation[3];
+                        if (groupedByAntibody.hasOwnProperty(antibody) === false) {
+                            groupedByAntibody[antibody] = [];
+                        }
+                        groupedByAntibody[antibody].push(expression);
+                    });
+                 // Compute summary statistics.
+                    $scope.summary = Object.keys(groupedByAntibody).map(function (antibody) {
+                        return {
+                            antibody: antibody,
+                            median: spearson.median(groupedByAntibody[antibody]),
+                            mean: spearson.mean(groupedByAntibody[antibody]),
+                            standardDeviation: spearson.standardDeviation(groupedByAntibody[antibody])
+                        };
+                    });
+                });
+            }, true);
         });
 
         app.directive("progressBar", function ($window) {
