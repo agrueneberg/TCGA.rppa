@@ -506,7 +506,7 @@
                 },
                 link: function (scope, element, attrs) {
                     var viz;
-                    viz = $window.heatmap().width(940).height(940);
+                    viz = $window.heatmap().width(908).height(908);
                     scope.$watch("data", function (data) {
                         data = data || [];
                         $window.d3.select(element[0])
@@ -526,7 +526,7 @@
                 },
                 link: function (scope, element, attrs) {
                     var viz;
-                    viz = $window.dendrogram().width(940).height(4000);
+                    viz = $window.dendrogram().width(908).height(4000);
                     scope.$watch("data", function (data) {
                         data = data || [];
                         viz.labels(scope.labels);
