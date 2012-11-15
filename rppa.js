@@ -1,6 +1,9 @@
 (function () {
     "use strict";
 
+    /*jshint jquery:true browser:true */
+    /*global TCGA:true async:true spearson:true d3:true heatmap:true dendrogram:true */
+
  // Load dependencies.
     TCGA.loadScript({
         registerModules: false,
