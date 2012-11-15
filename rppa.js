@@ -419,9 +419,11 @@
                 $q.all(promises).then(function (data) {
                     var blob, groupedByAntibody, antibodyNames, standardizedAntibodies, correlations, i, j, correlation, pairwiseDistances;
                  // Flatten data.
-                    data = data.reduce(function (previous, current) {
-                        return previous.concat(current);
-                    });
+                    if (data.length > 0) {
+                        data = data.reduce(function (previous, current) {
+                            return previous.concat(current);
+                        });
+                    }
                  // Generate blob URI.
                     blob = new Blob([data.map(function (observation) {
                         return observation.join("\t");
@@ -505,9 +507,10 @@
                 link: function (scope, element, attrs) {
                     var viz;
                     viz = $window.heatmap().width(940).height(940);
-                    scope.$watch("data", function () {
+                    scope.$watch("data", function (data) {
+                        data = data || [];
                         $window.d3.select(element[0])
-                                  .datum(scope.data)
+                                  .datum(data)
                                   .call(viz);
                     });
                 }
@@ -524,10 +527,11 @@
                 link: function (scope, element, attrs) {
                     var viz;
                     viz = $window.dendrogram().width(940).height(4000);
-                    scope.$watch("data", function () {
+                    scope.$watch("data", function (data) {
+                        data = data || [];
                         viz.labels(scope.labels);
                         $window.d3.select(element[0])
-                                  .datum(scope.data)
+                                  .datum(data)
                                   .call(viz);
                     });
                 }
