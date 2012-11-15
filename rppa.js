@@ -52,9 +52,8 @@
             $("#rppa-progress-bar p").html("Downloading files...");
 
          // Extract links.
-            links = [];
-            sparqlResult.results.bindings.forEach(function (link) {
-                links.push(link.url.value);
+            links = sparqlResult.results.bindings.map(function (link) {
+                return link.url.value;
             });
 
          // Collect the data in the following denormalized form:
