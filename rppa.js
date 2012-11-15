@@ -1,6 +1,8 @@
 (function () {
     "use strict";
 
+    /*global TCGA:true, angular:true */
+
  // Load dependencies.
     TCGA.loadScript({
         registerModules: false,
@@ -92,7 +94,7 @@
                     return $q.all(promises);
                 },
                 extractSampleId: function (uri) {
-                    return uri.match(/Level_3\.([-_a-zA-Z0-9]+)\.txt$/)[1];
+                    return uri.match(/Level_3\.([_a-zA-Z0-9-]+)\.txt$/)[1];
                 },
              // Converts the data into the following denormalized form:
              // Sample_Reference_Id Composite_Element_Ref Antibody Antibody_Expression
@@ -443,15 +445,15 @@
                     $scope.summary = antibodyNames.map(function (antibody) {
                         return {
                             antibody: antibody,
-                            median: spearson.median(groupedByAntibody[antibody]),
-                            mean: spearson.mean(groupedByAntibody[antibody]),
-                            standardDeviation: spearson.standardDeviation(groupedByAntibody[antibody])
+                            median: $window.spearson.median(groupedByAntibody[antibody]),
+                            mean: $window.spearson.mean(groupedByAntibody[antibody]),
+                            standardDeviation: $window.spearson.standardDeviation(groupedByAntibody[antibody])
                         };
                     });
                  // Standardize expression values.
                     standardizedAntibodies = {};
                     antibodyNames.map(function (antibody) {
-                        standardizedAntibodies[antibody] = spearson.standardize(groupedByAntibody[antibody]);
+                        standardizedAntibodies[antibody] = $window.spearson.standardize(groupedByAntibody[antibody]);
                     });
                  // Calculate the correlation coefficients of all antibody expression levels.
                     correlations = {};
@@ -461,7 +463,7 @@
                             if (i === j) {
                                 correlations[antibodyNames[i]][antibodyNames[j]] = 1;
                             } else {
-                                correlation = spearson.correlation.pearson(standardizedAntibodies[antibodyNames[i]], standardizedAntibodies[antibodyNames[j]], false);
+                                correlation = $window.spearson.correlation.pearson(standardizedAntibodies[antibodyNames[i]], standardizedAntibodies[antibodyNames[j]], false);
                                 correlations[antibodyNames[i]][antibodyNames[j]] = correlation;
                                 correlations[antibodyNames[j]][antibodyNames[i]] = correlation;
                             }
@@ -477,7 +479,7 @@
                         });
                     });
                  // Run the clustering.
-                    $scope.clusters = spearson.hierarchicalClustering(pairwiseDistances, "upgma");
+                    $scope.clusters = $window.spearson.hierarchicalClustering(pairwiseDistances, "upgma");
                     $scope.clusterLabels = antibodyNames;
                 });
             }, true);
