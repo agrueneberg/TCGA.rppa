@@ -115,6 +115,9 @@
                              // Extract Composite Element REF.
                                 compositeElementRef = tuple[1];
                             } else {
+                             // Remove species and validation status from antibody names.
+                             // See: http://goo.gl/KB4JZ
+                                tuple[0] = tuple[0].match(/(.*)-\w+-\w+/)[1];
                              // Ignore given antibodies.
                                 if (ignoredAntibodies.indexOf(tuple[0]) === -1) {
                                  // Extract antibodies and their expression levels.
