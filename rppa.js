@@ -40,7 +40,7 @@
             };
         });
 
-        app.factory("rppa", function ($rootScope, $q) {
+        app.factory("rppa", function ($rootScope, $q, $http) {
             var get, normalizeAntibodyName;
             get = function (link) {
                 var deferred;
@@ -125,6 +125,34 @@
                         });
                     });
                     return deferred.promise;
+                },
+                fetchPatientInformation: function (barcodes) {
+                    var deferred, endpoint, query;
+                    deferred = $q.defer();
+                    endpoint = "http://agalpha.mathbiol.org/repositories/tcga-patient?query=";
+                    query = ["prefix tcgaclin:<http://purl.org/tcga/clin#property/>",
+                             "select ?barcode ?gender ?race",
+                             "where {",
+                             "    ?patient tcgaclin:bcr_patient_barcode ?barcode .",
+                             "    ?patient tcgaclin:gender ?gender .",
+                             "    ?patient tcgaclin:race ?race .",
+                             "    FILTER regex(?barcode, \"^" + barcodes.join("|") + "$\")",
+                             "}"].join("\n");
+                    TCGA.get.sparql(endpoint + encodeURIComponent(query), function (err, sparql) {
+                        $rootScope.$apply(function () {
+                            deferred.resolve(sparql.results.bindings);
+                        });
+                    });
+                    return deferred.promise;
+                },
+                mapUuidsToBarcodes: function (barcodes) {
+                    return $http.post("https://tcga-data.nci.nih.gov/uuid/uuidws/mapping/json/uuid/batch", barcodes.join(","), {
+                        headers: {
+                            "Content-Type": "text/plain"
+                        }
+                    }).then(function (res) {
+                        return res.data.uuidMapping;
+                    });
                 },
                 extractSampleId: function (uri) {
                     return uri.match(/Level_3\.([_a-zA-Z0-9-]+)\.txt$/)[1];
@@ -353,7 +381,7 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
-            $templateCache.put("main.html", '<div ng-controller="main"><div class="accordion"><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-samples">Samples</a></div><div id="rppa-samples" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(samples)" class="btn btn-mini">Select all</button><button ng-click="selectNone(samples)" class="btn btn-mini">Select none</button></div><ul class="unstyled"><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-antibodies">Antibodies</a></div><div id="rppa-antibodies" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(antibodies)" class="btn btn-mini">Select all</button><button ng-click="selectNone(antibodies)" class="btn btn-mini">Select none</button></div><ul class="unstyled"><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}} (related genes: {{antibody.genes}})</li></ul></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-summary">Summary</a></div><div id="rppa-summary" class="accordion-body collapse"><div class="accordion-inner"><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th><th>Slide</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td><td><a href="{{item.slide}}" target="_blank">Slide</a></td></tr></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-correlations">Correlation coefficients of antibody pairs</a></div><div id="rppa-correlations" class="accordion-body collapse"><div class="accordion-inner"><heatmap data="correlations" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-clusters">Clustering of correlation coefficients</a></div><div id="rppa-clusters" class="accordion-body collapse"><div class="accordion-inner"><dendrogram labels="clusterLabels" data="clusters" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-export">Export tidied data (for use in R, MATLAB, Google Refine, ...)</a></div><div id="rppa-export" class="accordion-body collapse"><div class="accordion-inner"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a></div></div></div></div><div>');
+            $templateCache.put("main.html", '<div ng-controller="main"><div class="accordion"><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-samples">Samples</a></div><div id="rppa-samples" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(samples)" class="btn btn-mini">Select all</button><button ng-click="selectNone(samples)" class="btn btn-mini">Select none</button></div><ul class="unstyled"><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}} &ndash; Race: {{sample.patient.race}}, Gender: {{sample.patient.gender}}</a></li></ul></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-antibodies">Antibodies</a></div><div id="rppa-antibodies" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(antibodies)" class="btn btn-mini">Select all</button><button ng-click="selectNone(antibodies)" class="btn btn-mini">Select none</button></div><ul class="unstyled"><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}} (related genes: {{antibody.genes}})</li></ul></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-summary">Summary</a></div><div id="rppa-summary" class="accordion-body collapse"><div class="accordion-inner"><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th><th>Slide</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td><td><a href="{{item.slide}}" target="_blank">Slide</a></td></tr></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-correlations">Correlation coefficients of antibody pairs</a></div><div id="rppa-correlations" class="accordion-body collapse"><div class="accordion-inner"><heatmap data="correlations" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-clusters">Clustering of correlation coefficients</a></div><div id="rppa-clusters" class="accordion-body collapse"><div class="accordion-inner"><dendrogram labels="clusterLabels" data="clusters" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-export">Export tidied data (for use in R, MATLAB, Google Refine, ...)</a></div><div id="rppa-export" class="accordion-body collapse"><div class="accordion-inner"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a></div></div></div></div><div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
@@ -387,6 +415,17 @@
                      // Store antibodies in store service.
                         return store.set("antibodies", antibodies);
                     }));
+                 // Get patient data.
+                    promises.push(rppa.mapUuidsToBarcodes(links.map(function (link) {
+                        return rppa.extractSampleId(link);
+                    })).then(function (mappings) {
+                        return rppa.fetchPatientInformation(mappings.map(function (mapping) {
+                         // Extract patient ID.
+                            return mapping.barcode.substring(0, 12);
+                        }));
+                    }).then(function (patients) {
+                        return store.set("patients", patients);
+                    }));
                  // Get links to slides.
                     promises.push(rppa.fetchSlides().then(function (slides) {
                         return store.set("slides", slides);
@@ -400,31 +439,49 @@
         });
 
         app.controller("main", function ($scope, $q, $window, rppa, store) {
-         // Samples can be inferred from links.
-            store.get("links").then(function (links) {
-             // Preselect links.
-                links = links.map(function (link) {
-                    return {
-                        id: rppa.extractSampleId(link),
-                        uri: link,
-                        selected: true
-                    };
+         // Retrieve all the data needed from the store.
+            $q.all([store.get("links"), store.get("patients"), store.get("antibodies"), store.get("slides")]).then(function (values) {
+                var links, patients, antibodies, slides;
+                links = values[0];
+                patients = values[1];
+                antibodies = values[2];
+                slides = values[3];
+                return rppa.mapUuidsToBarcodes(links.map(function (link) {
+                    return rppa.extractSampleId(link);
+                })).then(function (barcodes) {
+                 // Preselect links.
+                    links = links.map(function (link) {
+                        var sampleId, patientId, patient;
+                        sampleId = rppa.extractSampleId(link);
+                        patientId = barcodes.filter(function (element) {
+                            return element.uuid === sampleId;
+                        })[0].barcode.substring(0, 12);
+                        patient = patients.filter(function (element) {
+                            return element.barcode.value === patientId;
+                        })[0];
+                        return {
+                            id: sampleId,
+                            uri: link,
+                            patient: {
+                                gender: patient !== undefined ? patient.gender.value : "[Not Available]",
+                                race: patient !== undefined ? patient.race.value : "[Not Available]"
+                            },
+                            selected: true
+                        };
+                    });
+                    return links;
+                }).then(function (samples) {
+                    $scope.samples = samples;
+                    $scope.antibodies = antibodies.map(function (antibody) {
+                        return {
+                            name: antibody,
+                            genes: rppa.mapAntibodyToGenes(antibody).join(", "),
+                         // Preselect antibodies.
+                            selected: true
+                        };
+                    });
+                    $scope.slides = slides;
                 });
-                $scope.samples = links;
-            });
-            store.get("antibodies").then(function (antibodies) {
-             // Preselect antibodies.
-                antibodies = antibodies.map(function (antibody) {
-                    return {
-                        name: antibody,
-                        genes: rppa.mapAntibodyToGenes(antibody).join(", "),
-                        selected: true
-                    };
-                });
-                $scope.antibodies = antibodies;
-            });
-            store.get("slides").then(function (slides) {
-                $scope.slides = slides;
             });
             $scope.selectAll = function (model) {
                 model.forEach(function (item) {
