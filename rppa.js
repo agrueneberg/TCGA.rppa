@@ -41,7 +41,7 @@
         });
 
         app.factory("rppa", function ($rootScope, $q) {
-            var get;
+            var get, normalizeAntibodyName;
             get = function (link) {
                 var deferred;
                 deferred = $q.defer();
@@ -55,6 +55,9 @@
                     });
                 });
                 return deferred.promise;
+            };
+            normalizeAntibodyName = function (antibody) {
+                return antibody.match(/(.*)-\w+-\w+/)[1];
             };
             return {
                 fetchLinks: function () {
@@ -93,6 +96,36 @@
                     });
                     return $q.all(promises);
                 },
+                fetchSlides: function () {
+                    var deferred, query;
+                    deferred = $q.defer();
+                    query = ["prefix tcga:<http://purl.org/tcga/core#>",
+                             "select ?url",
+                             "where {",
+                             "    ?file tcga:platform ?platform .",
+                             "    ?platform rdfs:label \"mda_rppa_core\" .",
+                             "    ?file tcga:disease-study ?diseaseStudy .",
+                             "    ?diseaseStudy rdfs:label \"gbm\" .",
+                             "    ?file rdfs:label ?name .",
+                             "    ?file tcga:url ?url .",
+                             "    filter strEnds(?name, \".tif\")",
+                             "}"].join("\n");
+                    TCGA.find(query, function (err, sparql) {
+                        var slides;
+                        slides = sparql.results.bindings.map(function (link) {
+                            var antibodyName;
+                            antibodyName = link.url.value.replace(/.*\/(.*)_.*/, "$1");
+                            return {
+                                name: normalizeAntibodyName(antibodyName),
+                                uri: link.url.value
+                            };
+                        });
+                        $rootScope.$apply(function () {
+                            deferred.resolve(slides);
+                        });
+                    });
+                    return deferred.promise;
+                },
                 extractSampleId: function (uri) {
                     return uri.match(/Level_3\.([_a-zA-Z0-9-]+)\.txt$/)[1];
                 },
@@ -119,7 +152,7 @@
                             } else {
                              // Remove species and validation status from antibody names.
                              // See: http://goo.gl/KB4JZ
-                                tuple[0] = tuple[0].match(/(.*)-\w+-\w+/)[1];
+                                tuple[0] = normalizeAntibodyName(tuple[0]);
                              // Ignore given antibodies.
                                 if (ignoredAntibodies.indexOf(tuple[0]) === -1) {
                                  // Extract antibodies and their expression levels.
@@ -320,7 +353,7 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
-            $templateCache.put("main.html", '<div ng-controller="main"><div class="accordion"><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-samples">Samples</a></div><div id="rppa-samples" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(samples)" class="btn btn-mini">Select all</button><button ng-click="selectNone(samples)" class="btn btn-mini">Select none</button></div><ul class="unstyled"><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-antibodies">Antibodies</a></div><div id="rppa-antibodies" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(antibodies)" class="btn btn-mini">Select all</button><button ng-click="selectNone(antibodies)" class="btn btn-mini">Select none</button></div><ul class="unstyled"><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}} (related genes: {{antibody.genes}})</li></ul></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-summary">Summary</a></div><div id="rppa-summary" class="accordion-body collapse"><div class="accordion-inner"><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td></tr></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-correlations">Correlation coefficients of antibody pairs</a></div><div id="rppa-correlations" class="accordion-body collapse"><div class="accordion-inner"><heatmap data="correlations" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-clusters">Clustering of correlation coefficients</a></div><div id="rppa-clusters" class="accordion-body collapse"><div class="accordion-inner"><dendrogram labels="clusterLabels" data="clusters" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-export">Export tidied data (for use in R, MATLAB, Google Refine, ...)</a></div><div id="rppa-export" class="accordion-body collapse"><div class="accordion-inner"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a></div></div></div></div><div>');
+            $templateCache.put("main.html", '<div ng-controller="main"><div class="accordion"><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-samples">Samples</a></div><div id="rppa-samples" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(samples)" class="btn btn-mini">Select all</button><button ng-click="selectNone(samples)" class="btn btn-mini">Select none</button></div><ul class="unstyled"><li ng-repeat="sample in samples"><input type="checkbox" ng-model="sample.selected" />&nbsp;<a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></li></ul></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-antibodies">Antibodies</a></div><div id="rppa-antibodies" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(antibodies)" class="btn btn-mini">Select all</button><button ng-click="selectNone(antibodies)" class="btn btn-mini">Select none</button></div><ul class="unstyled"><li ng-repeat="antibody in antibodies"><input type="checkbox" ng-model="antibody.selected" />&nbsp;{{antibody.name}} (related genes: {{antibody.genes}})</li></ul></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-summary">Summary</a></div><div id="rppa-summary" class="accordion-body collapse"><div class="accordion-inner"><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th><th>Slide</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td><td><a href="{{item.slide}}" target="_blank">Slide</a></td></tr></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-correlations">Correlation coefficients of antibody pairs</a></div><div id="rppa-correlations" class="accordion-body collapse"><div class="accordion-inner"><heatmap data="correlations" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-clusters">Clustering of correlation coefficients</a></div><div id="rppa-clusters" class="accordion-body collapse"><div class="accordion-inner"><dendrogram labels="clusterLabels" data="clusters" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-export">Export tidied data (for use in R, MATLAB, Google Refine, ...)</a></div><div id="rppa-export" class="accordion-body collapse"><div class="accordion-inner"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a></div></div></div></div><div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
@@ -354,6 +387,10 @@
                      // Store antibodies in store service.
                         return store.set("antibodies", antibodies);
                     }));
+                 // Get links to slides.
+                    promises.push(rppa.fetchSlides().then(function (slides) {
+                        return store.set("slides", slides);
+                    }));
                     $q.all(promises).then(function () {
                      // Change template.
                         $scope.$emit("updateTemplate", "main.html");
@@ -386,6 +423,9 @@
                 });
                 $scope.antibodies = antibodies;
             });
+            store.get("slides").then(function (slides) {
+                $scope.slides = slides;
+            });
             $scope.selectAll = function (model) {
                 model.forEach(function (item) {
                     item.selected = true;
@@ -399,7 +439,8 @@
             $scope.$watch(function () {
                 return {
                     samples: $scope.samples,
-                    antibodies: $scope.antibodies
+                    antibodies: $scope.antibodies,
+                    slides: $scope.slides
                 };
             }, function (combination) {
                 var samples, ignoredAntibodies, promises;
@@ -449,7 +490,10 @@
                             antibody: antibody,
                             median: $window.spearson.median(groupedByAntibody[antibody]),
                             mean: $window.spearson.mean(groupedByAntibody[antibody]),
-                            standardDeviation: $window.spearson.standardDeviation(groupedByAntibody[antibody])
+                            standardDeviation: $window.spearson.standardDeviation(groupedByAntibody[antibody]),
+                            slide: combination.slides.filter(function (element) {
+                                return element.name === antibody;
+                            })[0].uri
                         };
                     });
                  // Standardize expression values.
