@@ -129,18 +129,24 @@
                 fetchPatientInformation: function (barcodes) {
                     var deferred, endpoint, query;
                     deferred = $q.defer();
-                    endpoint = "http://agalpha.mathbiol.org/repositories/tcga-patient?query=";
-                    query = ["prefix tcgaclin:<http://purl.org/tcga/clin#property/>",
-                             "select ?barcode ?gender ?race",
-                             "where {",
-                             "    ?patient tcgaclin:bcr_patient_barcode ?barcode .",
-                             "    ?patient tcgaclin:gender ?gender .",
-                             "    ?patient tcgaclin:race ?race .",
-                             "    FILTER regex(?barcode, \"^" + barcodes.join("|") + "$\")",
-                             "}"].join("\n");
-                    TCGA.get.sparql(endpoint + encodeURIComponent(query), function (err, sparql) {
+                    TCGA.get("https://tcga-data.nci.nih.gov/tcgafiles/ftp_auth/distro_ftpusers/anonymous/tumor/gbm/bcr/biotab/clin/clinical_patient_gbm.txt", function (err, res) {
+                        var lines, columns, patients;
+                        lines = res.split("\n");
+                        columns = lines.shift().split("\t");
+                        patients = [];
+                        lines.map(function (line) {
+                            var fields, patient;
+                            fields = line.split("\t");
+                            if (barcodes.indexOf(fields[0]) !== -1) {
+                                patient = {};
+                                fields.forEach(function (value, idx) {
+                                    patient[columns[idx]] = value;
+                                });
+                                patients.push(patient);
+                            }
+                        });
                         $rootScope.$apply(function () {
-                            deferred.resolve(sparql.results.bindings);
+                            deferred.resolve(patients);
                         });
                     });
                     return deferred.promise;
@@ -457,14 +463,14 @@
                             return element.uuid === sampleId;
                         })[0].barcode.substring(0, 12);
                         patient = patients.filter(function (element) {
-                            return element.barcode.value === patientId;
+                            return element.bcr_patient_barcode === patientId;
                         })[0];
                         return {
                             id: sampleId,
                             uri: link,
                             patient: {
-                                gender: patient !== undefined ? patient.gender.value : "[Not Available]",
-                                race: patient !== undefined ? patient.race.value : "[Not Available]"
+                                gender: patient !== undefined ? patient.gender : "[Not Available]",
+                                race: patient !== undefined ? patient.race : "[Not Available]"
                             },
                             selected: true
                         };
