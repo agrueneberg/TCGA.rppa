@@ -483,6 +483,7 @@
                         };
                     });
                     $scope.slides = slides;
+                    $scope.$emit("preloadedData");
                 });
             });
             $scope.selectAll = function (model) {
@@ -495,99 +496,102 @@
                     item.selected = false;
                 });
             };
-            $scope.$watch(function () {
-                return {
-                    samples: $scope.samples,
-                    antibodies: $scope.antibodies,
-                    slides: $scope.slides
-                };
-            }, function (combination) {
-                var samples, ignoredAntibodies, promises;
-                samples = combination.samples.filter(function (sample) {
-                    return sample.selected;
-                });
-                ignoredAntibodies = combination.antibodies.filter(function (antibody) {
-                    return !antibody.selected;
-                }).map(function (antibody) {
-                    return antibody.name;
-                });
-                promises = samples.map(function (sample) {
-                    return store.get("file:" + sample.id).then(function (file) {
-                        return rppa.normalizeFile(file, ignoredAntibodies);
+            $scope.$on("preloadedData", function (event) {
+             // Register watcher after data has been loaded.
+                $scope.$watch(function () {
+                    return {
+                        samples: $scope.samples,
+                        antibodies: $scope.antibodies,
+                        slides: $scope.slides
+                    };
+                }, function (combination) {
+                    var samples, ignoredAntibodies, promises;
+                    samples = combination.samples.filter(function (sample) {
+                        return sample.selected;
                     });
-                });
-                $q.all(promises).then(function (data) {
-                    var blob, groupedByAntibody, antibodyNames, standardizedAntibodies, correlations, i, j, correlation, pairwiseDistances;
-                 // Flatten data.
-                    if (data.length > 0) {
-                        data = data.reduce(function (previous, current) {
-                            return previous.concat(current);
+                    ignoredAntibodies = combination.antibodies.filter(function (antibody) {
+                        return !antibody.selected;
+                    }).map(function (antibody) {
+                        return antibody.name;
+                    });
+                    promises = samples.map(function (sample) {
+                        return store.get("file:" + sample.id).then(function (file) {
+                            return rppa.normalizeFile(file, ignoredAntibodies);
                         });
-                    }
-                 // Generate blob URI.
-                    blob = new Blob([data.map(function (observation) {
-                        return observation.join("\t");
-                    }).join("\n")]);
-                 // See http://www.html5rocks.com/en/tutorials/workers/basics/#toc-inlineworkers-bloburis
-                    $scope.blobUri = $window.URL.createObjectURL(blob);
-                 // Group observations by antibody.
-                    groupedByAntibody = {};
-                    data.forEach(function (observation) {
-                        var antibody, expression;
-                        antibody = observation[2];
-                        expression = observation[3];
-                        if (groupedByAntibody.hasOwnProperty(antibody) === false) {
-                            groupedByAntibody[antibody] = [];
+                    });
+                    $q.all(promises).then(function (data) {
+                        var blob, groupedByAntibody, antibodyNames, standardizedAntibodies, correlations, i, j, correlation, pairwiseDistances;
+                     // Flatten data.
+                        if (data.length > 0) {
+                            data = data.reduce(function (previous, current) {
+                                return previous.concat(current);
+                            });
                         }
-                        groupedByAntibody[antibody].push(expression);
-                    });
-                 // Extract antibody names for fast lookup.
-                    antibodyNames = Object.keys(groupedByAntibody);
-                 // Compute summary statistics.
-                    $scope.summary = antibodyNames.map(function (antibody) {
-                        return {
-                            antibody: antibody,
-                            median: $window.spearson.median(groupedByAntibody[antibody]),
-                            mean: $window.spearson.mean(groupedByAntibody[antibody]),
-                            standardDeviation: $window.spearson.standardDeviation(groupedByAntibody[antibody]),
-                            slide: combination.slides.filter(function (element) {
-                                return element.name === antibody;
-                            })[0].uri
-                        };
-                    });
-                 // Standardize expression values.
-                    standardizedAntibodies = {};
-                    antibodyNames.map(function (antibody) {
-                        standardizedAntibodies[antibody] = $window.spearson.standardize(groupedByAntibody[antibody]);
-                    });
-                 // Calculate the correlation coefficients of all antibody expression levels.
-                    correlations = {};
-                    for (i = 0; i < antibodyNames.length; i++) {
-                        correlations[antibodyNames[i]] = {};
-                        for (j = 0; j <= i; j++) {
-                            if (i === j) {
-                                correlations[antibodyNames[i]][antibodyNames[j]] = 1;
-                            } else {
-                                correlation = $window.spearson.correlation.pearson(standardizedAntibodies[antibodyNames[i]], standardizedAntibodies[antibodyNames[j]], false);
-                                correlations[antibodyNames[i]][antibodyNames[j]] = correlation;
-                                correlations[antibodyNames[j]][antibodyNames[i]] = correlation;
+                     // Generate blob URI.
+                        blob = new Blob([data.map(function (observation) {
+                            return observation.join("\t");
+                        }).join("\n")]);
+                     // See http://www.html5rocks.com/en/tutorials/workers/basics/#toc-inlineworkers-bloburis
+                        $scope.blobUri = $window.URL.createObjectURL(blob);
+                     // Group observations by antibody.
+                        groupedByAntibody = {};
+                        data.forEach(function (observation) {
+                            var antibody, expression;
+                            antibody = observation[2];
+                            expression = observation[3];
+                            if (groupedByAntibody.hasOwnProperty(antibody) === false) {
+                                groupedByAntibody[antibody] = [];
+                            }
+                            groupedByAntibody[antibody].push(expression);
+                        });
+                     // Extract antibody names for fast lookup.
+                        antibodyNames = Object.keys(groupedByAntibody);
+                     // Compute summary statistics.
+                        $scope.summary = antibodyNames.map(function (antibody) {
+                            return {
+                                antibody: antibody,
+                                median: $window.spearson.median(groupedByAntibody[antibody]),
+                                mean: $window.spearson.mean(groupedByAntibody[antibody]),
+                                standardDeviation: $window.spearson.standardDeviation(groupedByAntibody[antibody]),
+                                slide: combination.slides.filter(function (element) {
+                                    return element.name === antibody;
+                                })[0].uri
+                            };
+                        });
+                     // Standardize expression values.
+                        standardizedAntibodies = {};
+                        antibodyNames.map(function (antibody) {
+                            standardizedAntibodies[antibody] = $window.spearson.standardize(groupedByAntibody[antibody]);
+                        });
+                     // Calculate the correlation coefficients of all antibody expression levels.
+                        correlations = {};
+                        for (i = 0; i < antibodyNames.length; i++) {
+                            correlations[antibodyNames[i]] = {};
+                            for (j = 0; j <= i; j++) {
+                                if (i === j) {
+                                    correlations[antibodyNames[i]][antibodyNames[j]] = 1;
+                                } else {
+                                    correlation = $window.spearson.correlation.pearson(standardizedAntibodies[antibodyNames[i]], standardizedAntibodies[antibodyNames[j]], false);
+                                    correlations[antibodyNames[i]][antibodyNames[j]] = correlation;
+                                    correlations[antibodyNames[j]][antibodyNames[i]] = correlation;
+                                }
                             }
                         }
-                    }
-                    $scope.correlations = correlations;
-                 // Calculate the pairwise distances.
-                    pairwiseDistances = Object.keys(correlations).map(function (proteinA) {
-                        return Object.keys(correlations[proteinA]).map(function (proteinB) {
-                         // The direction of the correlation coefficient is of no value,
-                         // it is only the magnitude that matters.
-                            return 1 - Math.abs(correlations[proteinA][proteinB]);
+                        $scope.correlations = correlations;
+                     // Calculate the pairwise distances.
+                        pairwiseDistances = Object.keys(correlations).map(function (proteinA) {
+                            return Object.keys(correlations[proteinA]).map(function (proteinB) {
+                             // The direction of the correlation coefficient is of no value,
+                             // it is only the magnitude that matters.
+                                return 1 - Math.abs(correlations[proteinA][proteinB]);
+                            });
                         });
+                     // Run the clustering.
+                        $scope.clusters = $window.spearson.hierarchicalClustering(pairwiseDistances, "upgma");
+                        $scope.clusterLabels = antibodyNames;
                     });
-                 // Run the clustering.
-                    $scope.clusters = $window.spearson.hierarchicalClustering(pairwiseDistances, "upgma");
-                    $scope.clusterLabels = antibodyNames;
-                });
-            }, true);
+                }, true);
+            });
         });
 
         app.directive("progressBar", function ($window) {
