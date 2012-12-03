@@ -387,7 +387,7 @@
 
         app.controller("template", function ($scope, $templateCache) {
             $templateCache.put("download-data.html", '<div ng-controller="download"><progress-bar message="message" percentage="percentage" /></div>');
-            $templateCache.put("main.html", '<div ng-controller="main"><div class="accordion"><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-samples">Samples</a></div><div id="rppa-samples" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(samples)" class="btn btn-mini">Select all</button><button ng-click="selectNone(samples)" class="btn btn-mini">Select none</button></div><table class="table table-striped"><thead><tr><th></th><th>UUID</th><th>Race</th><th>Gender</th><th>Age</th><th>Vital Status</th></thead><tbody><tr ng-repeat="sample in samples"><td><input type="checkbox" ng-model="sample.selected" /></td><td><a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></td><td>{{sample.patient.race}}</td><td>{{sample.patient.gender}}</td><td>{{sample.patient.age}}</td><td>{{sample.patient.vitalStatus}}</td></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-antibodies">Antibodies</a></div><div id="rppa-antibodies" class="accordion-body collapse"><div class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(antibodies)" class="btn btn-mini">Select all</button><button ng-click="selectNone(antibodies)" class="btn btn-mini">Select none</button></div><table class="table table-striped"><thead><tr><th></th><th>Antibody</th><th>Related Genes</th></thead><tbody><tr ng-repeat="antibody in antibodies"><td><input type="checkbox" ng-model="antibody.selected" /></td><td>{{antibody.name}}</td><td>{{antibody.genes}}</td></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-summary">Summary</a></div><div id="rppa-summary" class="accordion-body collapse"><div class="accordion-inner"><table class="table table-striped"><thead><tr><th>Antibody</th><th>Median</th><th>Mean</th><th>Standard deviation</th><th>Slide</th></tr></thead><tbody><tr ng-repeat="item in summary"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td><td><a href="{{item.slide}}" target="_blank">Slide</a></td></tr></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-correlations">Correlation coefficients of antibody pairs</a></div><div id="rppa-correlations" class="accordion-body collapse"><div class="accordion-inner"><heatmap data="correlations" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-clusters">Clustering of correlation coefficients</a></div><div id="rppa-clusters" class="accordion-body collapse"><div class="accordion-inner"><dendrogram labels="clusterLabels" data="clusters" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-export">Export tidied data (for use in R, MATLAB, Google Refine, ...)</a></div><div id="rppa-export" class="accordion-body collapse"><div class="accordion-inner"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a></div></div></div></div><div>');
+            $templateCache.put("main.html", '<div ng-controller="main"><div class="accordion"><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-samples">Samples</a></div><div id="rppa-samples" class="accordion-body collapse"><div ng-controller="samples" class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(samples)" class="btn btn-mini">Select all</button><button ng-click="selectNone(samples)" class="btn btn-mini">Select none</button></div><table class="table table-striped"><thead><tr><th></th><th ng-class="getSortClass(\'id\')" ng-click="changeSortColumn(\'id\')">UUID</th><th ng-class="getSortClass(\'race\')" ng-click="changeSortColumn(\'race\')">Race</th><th ng-class="getSortClass(\'gender\')" ng-click="changeSortColumn(\'gender\')">Gender</th><th ng-class="getSortClass(\'age\')" ng-click="changeSortColumn(\'age\')">Age</th><th ng-class="getSortClass(\'vitalStatus\')" ng-click="changeSortColumn(\'vitalStatus\')">Vital Status</th></thead><tbody><tr ng-repeat="sample in samples | orderBy:sortColumn:reverseSort"><td><input type="checkbox" ng-model="sample.selected" /></td><td><a href="{{sample.uri}}" target="_blank">{{sample.id}}</a></td><td>{{sample.race}}</td><td>{{sample.gender}}</td><td>{{sample.age}}</td><td>{{sample.vitalStatus}}</td></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-antibodies">Antibodies</a></div><div id="rppa-antibodies" class="accordion-body collapse"><div ng-controller="antibodies" class="accordion-inner"><div class="btn-group rppa-btn-group"><button ng-click="selectAll(antibodies)" class="btn btn-mini">Select all</button><button ng-click="selectNone(antibodies)" class="btn btn-mini">Select none</button></div><table class="table table-striped"><thead><tr><th></th><th ng-class="getSortClass(\'name\')" ng-click="changeSortColumn(\'name\')">Antibody</th><th ng-class="getSortClass(\'genes\')" ng-click="changeSortColumn(\'genes\')">Related Genes</th></thead><tbody><tr ng-repeat="antibody in antibodies | orderBy:sortColumn:reverseSort"><td><input type="checkbox" ng-model="antibody.selected" /></td><td>{{antibody.name}}</td><td>{{antibody.genes}}</td></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-summary">Summary</a></div><div id="rppa-summary" class="accordion-body collapse"><div ng-controller="summary" class="accordion-inner"><table class="table table-striped"><thead><tr><th ng-class="getSortClass(\'antibody\')" ng-click="changeSortColumn(\'antibody\')">Antibody</th><th ng-class="getSortClass(\'median\')" ng-click="changeSortColumn(\'median\')">Median</th><th ng-class="getSortClass(\'mean\')" ng-click="changeSortColumn(\'mean\')">Mean</th><th ng-class="getSortClass(\'standardDeviation\')" ng-click="changeSortColumn(\'standardDeviation\')">Standard deviation</th><th>Slide</th></tr></thead><tbody><tr ng-repeat="item in summary | orderBy:sortColumn:reverseSort"><td>{{item.antibody}}</td><td>{{item.median}}</td><td>{{item.mean}}</td><td>{{item.standardDeviation}}</td><td><a href="{{item.slide}}" target="_blank">Slide</a></td></tr></tbody></table></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-correlations">Correlation coefficients of antibody pairs</a></div><div id="rppa-correlations" class="accordion-body collapse"><div class="accordion-inner"><heatmap data="correlations" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-clusters">Clustering of correlation coefficients</a></div><div id="rppa-clusters" class="accordion-body collapse"><div class="accordion-inner"><dendrogram labels="clusterLabels" data="clusters" /></div></div></div><div class="accordion-group"><div class="accordion-heading"><a class="accordion-toggle" data-toggle="collapse" data-target="#rppa-export">Export tidied data (for use in R, MATLAB, Google Refine, ...)</a></div><div id="rppa-export" class="accordion-body collapse"><div class="accordion-inner"><p>Format: <code>Sample REF</code> \\t <code>Composite Element REF</code> \\t <code>Protein</code> \\t <code>Protein Expression</code></p><a href="{{blobUri}}" download="rppa.tsv" class="btn">Download tidied data</a></div></div></div></div><div>');
             $scope.template = "download-data.html";
             $scope.$on("updateTemplate", function (event, template) {
                 $scope.template = template;
@@ -468,12 +468,10 @@
                         return {
                             id: sampleId,
                             uri: link,
-                            patient: {
-                                gender: patient !== undefined ? patient.gender : "[Not Available]",
-                                race: patient !== undefined ? patient.race : "[Not Available]",
-                                age: patient !== undefined ? patient.age_at_initial_pathologic_diagnosis : "[Not Available]",
-                                vitalStatus: patient !== undefined ? patient.vital_status : "[Not Available]"
-                            },
+                            gender: patient !== undefined ? patient.gender : "[Not Available]",
+                            race: patient !== undefined ? patient.race : "[Not Available]",
+                            age: patient !== undefined ? patient.age_at_initial_pathologic_diagnosis : "[Not Available]",
+                            vitalStatus: patient !== undefined ? patient.vital_status : "[Not Available]",
                             selected: true
                         };
                     });
@@ -600,6 +598,78 @@
                     });
                 }, true);
             });
+        });
+
+        app.controller("samples", function ($scope) {
+            $scope.sortColumn = "uuid";
+            $scope.reverseSort = false;
+            $scope.changeSortColumn = function (column) {
+                if (column !== $scope.sortColumn) {
+                    $scope.reverseSort = false;
+                } else {
+                    $scope.reverseSort = !$scope.reverseSort;
+                }
+                $scope.sortColumn = column;
+            };
+            $scope.getSortClass = function (column) {
+                if (column === $scope.sortColumn) {
+                    if ($scope.reverseSort === false) {
+                        return "sort-desc";
+                    } else {
+                        return "sort-asc";
+                    }
+                } else {
+                    return "sort";
+                }
+            };
+        });
+
+        app.controller("antibodies", function ($scope) {
+            $scope.sortColumn = "antibody";
+            $scope.reverseSort = false;
+            $scope.changeSortColumn = function (column) {
+                if (column !== $scope.sortColumn) {
+                    $scope.reverseSort = false;
+                } else {
+                    $scope.reverseSort = !$scope.reverseSort;
+                }
+                $scope.sortColumn = column;
+            };
+            $scope.getSortClass = function (column) {
+                if (column === $scope.sortColumn) {
+                    if ($scope.reverseSort === false) {
+                        return "sort-desc";
+                    } else {
+                        return "sort-asc";
+                    }
+                } else {
+                    return "sort";
+                }
+            };
+        });
+
+        app.controller("summary", function ($scope) {
+            $scope.sortColumn = "antibody";
+            $scope.reverseSort = false;
+            $scope.changeSortColumn = function (column) {
+                if (column !== $scope.sortColumn) {
+                    $scope.reverseSort = false;
+                } else {
+                    $scope.reverseSort = !$scope.reverseSort;
+                }
+                $scope.sortColumn = column;
+            };
+            $scope.getSortClass = function (column) {
+                if (column === $scope.sortColumn) {
+                    if ($scope.reverseSort === false) {
+                        return "sort-desc";
+                    } else {
+                        return "sort-asc";
+                    }
+                } else {
+                    return "sort";
+                }
+            };
         });
 
         app.directive("progressBar", function ($window) {
