@@ -9,7 +9,7 @@
         scripts: [
             "https://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js",
             "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
-            "https://raw.github.com/mbostock/d3/master/d3.v2.min.js",
+            "https://raw.github.com/mbostock/d3/master/d3.min.js",
             "https://raw.github.com/agrueneberg/Viz/master/heatmap/heatmap.js",
             "https://raw.github.com/agrueneberg/Viz/master/dendrogram/dendrogram.js"
         ]
