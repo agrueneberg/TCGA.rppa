@@ -550,9 +550,12 @@
                             });
                         }
                      // Generate blob URI.
-                        blob = new Blob([data.map(function (observation) {
-                            return observation.join("\t");
-                        }).join("\n")]);
+                        blob = new Blob([
+                            "Sample REF\tComposite Element REF\tProtein\tProtein Expression\n",
+                            data.map(function (observation) {
+                                return observation.join("\t");
+                            }).join("\n")
+                        ]);
                      // See http://www.html5rocks.com/en/tutorials/workers/basics/#toc-inlineworkers-bloburis
                         $scope.blobUri = $window.URL.createObjectURL(blob);
                      // Group observations by antibody.
