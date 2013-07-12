@@ -416,7 +416,7 @@
         });
 
         app.controller("download", function ($scope, $q, rppa, store) {
-            $scope.message = "Querying hub...";
+            $scope.message = "Querying TCGA Roadmap...";
             $scope.percentage = 1;
             rppa.fetchLinks().then(function (links) {
                 $scope.message = "Downloading files...";
