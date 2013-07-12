@@ -167,14 +167,19 @@
                     });
                     return deferred.promise;
                 },
-                mapUuidsToBarcodes: function (barcodes) {
-                    return $http.post("https://tcga-data.nci.nih.gov/uuid/uuidws/mapping/json/uuid/batch", barcodes.join(","), {
-                        headers: {
-                            "Content-Type": "text/plain"
-                        }
-                    }).then(function (res) {
-                        return res.data.uuidMapping;
+                mapUuidsToBarcodes: function (uuids) {
+                    var deferred;
+                    deferred = $q.defer();
+                    TCGA.get.barcodes(uuids, function (err, res) {
+                        $rootScope.$apply(function () {
+                            if (err !== null) {
+                                deferred.reject(err);
+                            } else {
+                                deferred.resolve(res);
+                            }
+                        });
                     });
+                    return deferred.promise;
                 },
                 extractSampleId: function (uri) {
                     return uri.match(/Level_3\.([_a-zA-Z0-9-]+)\.txt$/)[1];
