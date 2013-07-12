@@ -416,10 +416,10 @@
         });
 
         app.controller("download", function ($scope, $q, rppa, store) {
-            $scope.message = "Querying TCGA Roadmap...";
+            $scope.message = "Querying TCGA Roadmap... (please be patient)";
             $scope.percentage = 1;
             rppa.fetchLinks().then(function (links) {
-                $scope.message = "Downloading files...";
+                $scope.message = "Downloading files straight from TCGA... (please be patient)";
                 rppa.fetchFiles(links).then(function (files) {
                     var promises;
                  // Now that q supports progress notifications, AngularJS will hopefully implement them, too.
