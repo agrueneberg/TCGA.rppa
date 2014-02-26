@@ -491,7 +491,7 @@
                 fetchPatientInformation: function (barcodes) {
                     var deferred, endpoint, query;
                     deferred = $q.defer();
-                    TCGA.get("https://tcga-data.nci.nih.gov/tcgafiles/ftp_auth/distro_ftpusers/anonymous/tumor/gbm/bcr/biotab/clin/clinical_patient_gbm.txt", function (err, res) {
+                    TCGA.get("https://tcga-data.nci.nih.gov/tcgafiles/ftp_auth/distro_ftpusers/anonymous/tumor/gbm/bcr/biotab/clin/nationwidechildrens.org_clinical_patient_gbm.txt", function (err, res) {
                         var lines, columns, patients;
                         lines = res.split("\n");
                         columns = lines.shift().split("\t");
