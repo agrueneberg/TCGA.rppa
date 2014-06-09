@@ -8,10 +8,10 @@
         registerModules: false,
         scripts: [
             "https://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js",
-            "https://raw.github.com/agrueneberg/Spearson/master/lib/spearson.js",
+            "https://agrueneberg.github.io/Spearson/lib/spearson.js",
             "https://cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.min.js",
-            "https://raw.github.com/agrueneberg/D3.heatmap/master/heatmap.js",
-            "https://raw.github.com/agrueneberg/D3.dendrogram/master/dendrogram.js"
+            "https://agrueneberg.github.io/D3.heatmap/heatmap.js",
+            "https://agrueneberg.github.io/D3.dendrogram/dendrogram.js"
         ]
     }, function () {
 
